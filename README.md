@@ -1,6 +1,6 @@
 # JTAF - Track and Field
 
-![CI](https://github.com/72services/jtaf4/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/martinellich/jtaf4/actions/workflows/ci.yml/badge.svg)
 
 ## Goals
 

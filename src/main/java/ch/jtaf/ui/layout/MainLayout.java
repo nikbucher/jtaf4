@@ -74,7 +74,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver{
         info.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
         info.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        var about = new Anchor("https://github.com/72services/jtaf4", "About");
+        var about = new Anchor("https://github.com/martinellich/jtaf4", "About");
         about.setTarget("_blank");
 
         register = new RouterLink(getTranslation("Register"), RegisterView.class);
