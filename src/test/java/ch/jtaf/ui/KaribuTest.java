@@ -32,7 +32,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 import static com.github.mvysny.kaributesting.v10.LocatorJ._get;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,15 +70,15 @@ public abstract class KaribuTest {
         // taken from https://www.baeldung.com/manually-set-user-authentication-spring-security
         // also see https://github.com/mvysny/karibu-testing/issues/47 for more details.
         final List<SimpleGrantedAuthority> authorities =
-            roles.stream().map(it -> new SimpleGrantedAuthority("ROLE_" + it)).collect(Collectors.toList());
+            roles.stream().map(it -> new SimpleGrantedAuthority("ROLE_" + it)).toList();
 
         UserDetails userDetails = new User(user, pass, authorities);
         UsernamePasswordAuthenticationToken authReq = new UsernamePasswordAuthenticationToken(userDetails, pass, authorities);
         SecurityContext sc = SecurityContextHolder.getContext();
         sc.setAuthentication(authReq);
 
-        // however, you also need to make sure that ViewAccessChecker works properly;
-        // that requires a correct MockRequest.userPrincipal and MockRequest.isUserInRole()
+        // however, you also need to make sure that ViewAccessChecker works properly that requires
+        // a correct MockRequest.userPrincipal and MockRequest.isUserInRole()
         final FakeRequest request = (FakeRequest) VaadinServletRequest.getCurrent().getRequest();
         request.setUserPrincipalInt(authReq);
         request.setUserInRole((principal, role) -> roles.contains(role));

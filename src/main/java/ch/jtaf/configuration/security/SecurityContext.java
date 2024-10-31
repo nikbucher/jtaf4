@@ -32,14 +32,11 @@ public final class SecurityContext {
      */
     public static String getUsername() {
         var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserDetails userDetails) {
-            return userDetails.getUsername();
-        } else if (principal instanceof Jwt jwt) {
-            return jwt.getSubject();
-        } else {
-            // Anonymous or no authentication.
-            return "";
-        }
+        return switch (principal) {
+            case UserDetails userDetails -> userDetails.getUsername();
+            case Jwt jwt -> jwt.getSubject();
+            case null, default -> ""; // Anonymous or no authentication.
+        };
     }
 
     /**

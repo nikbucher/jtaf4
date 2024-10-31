@@ -56,7 +56,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     private final Div form = new Div();
     private final transient DSLContext dsl;
     private final TransactionTemplate transactionTemplate;
-    private final ResultCalculator resultCalculator;
+    private final transient ResultCalculator resultCalculator;
     private TextField resultTextField;
     private long competitionId;
 
