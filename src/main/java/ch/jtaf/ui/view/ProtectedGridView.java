@@ -4,11 +4,8 @@ import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.ui.component.JooqDataProviderProducer;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.SortField;
-import org.jooq.Table;
+import org.jooq.*;
 
 import java.io.Serial;
 
@@ -26,7 +23,7 @@ public abstract class ProtectedGridView<R extends Record> extends ProtectedView 
         grid = new Grid<>();
         grid.setHeightFull();
 
-        dataProvider = new JooqDataProviderProducer<>(dsl, grid, table, this::initialCondition, this::initialSort).getDataProvider();
+        dataProvider = new JooqDataProviderProducer<>(dsl, table, this::initialCondition, this::initialSort).getDataProvider();
 
         grid.setItems(dataProvider);
 
