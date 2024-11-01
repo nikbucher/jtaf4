@@ -14,8 +14,6 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.io.Serial;
 import java.util.function.Consumer;
 
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
-
 public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
 
     @Serial
@@ -24,6 +22,8 @@ public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
     public static final String FULLSCREEN = "fullscreen";
 
     private final String initialWidth;
+    protected final DSLContext dslContext;
+    protected final TransactionTemplate transactionTemplate;
 
     private boolean isFullScreen = false;
     private final Div content;
@@ -35,8 +35,11 @@ public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
     private transient Consumer<R> afterSave;
     private boolean initialized;
 
-    protected EditDialog(String title, String initialWidth) {
+    protected EditDialog(String title, String initialWidth, DSLContext dslContext, TransactionTemplate transactionTemplate) {
         this.initialWidth = initialWidth;
+        this.dslContext = dslContext;
+        this.transactionTemplate = transactionTemplate;
+
         setWidth(initialWidth);
 
         setDraggable(true);
@@ -65,8 +68,8 @@ public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
         save.setId("edit-save");
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickListener(event -> {
-            getBean(TransactionTemplate.class).executeWithoutResult(transactionStatus -> {
-                getBean(DSLContext.class).attach(binder.getBean());
+            transactionTemplate.executeWithoutResult(transactionStatus -> {
+                dslContext.attach(binder.getBean());
                 binder.getBean().store();
 
                 if (afterSave != null) {

@@ -8,6 +8,7 @@ import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.SortField;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 
@@ -20,12 +21,12 @@ public class EventsView extends ProtectedGridView<EventRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public EventsView(DSLContext dsl, OrganizationProvider organizationProvider) {
-        super(dsl, organizationProvider, EVENT);
+    public EventsView(DSLContext dslContext, OrganizationProvider organizationProvider, TransactionTemplate transactionTemplate) {
+        super(dslContext, organizationProvider, EVENT);
 
         setHeightFull();
 
-        var dialog = new EventDialog(getTranslation("Event"));
+        var dialog = new EventDialog(getTranslation("Event"), dslContext, transactionTemplate);
 
         grid.setId("events-grid");
 
@@ -37,7 +38,7 @@ public class EventsView extends ProtectedGridView<EventRecord> {
         grid.addColumn(EventRecord::getB).setHeader("B").setAutoWidth(true);
         grid.addColumn(EventRecord::getC).setHeader("C").setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(grid, dialog, eventRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, eventRecord -> refreshAll(), () -> {
             var newRecord = EVENT.newRecord();
             newRecord.setOrganizationId(organizationRecord.getId());
             return newRecord;

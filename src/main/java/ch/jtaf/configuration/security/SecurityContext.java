@@ -10,18 +10,20 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
 
 /**
  * Takes care of all such static operations that have to do with security and
  * querying rights from different beans of the UI.
  */
+@Component
 public final class SecurityContext {
 
-    private SecurityContext() {
-        // Util methods only
+    private final AuthenticationContext authenticationContext;
+
+    public SecurityContext(AuthenticationContext authenticationContext) {
+        this.authenticationContext = authenticationContext;
     }
 
     /**
@@ -30,7 +32,7 @@ public final class SecurityContext {
      * @return the username of the current user or <code>null</code> if the user
      * has not signed in
      */
-    public static String getUsername() {
+    public String getUsername() {
         var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return switch (principal) {
             case UserDetails userDetails -> userDetails.getUsername();
@@ -44,18 +46,18 @@ public final class SecurityContext {
      *
      * @return true if the user is logged in. False otherwise.
      */
-    public static boolean isUserLoggedIn() {
+    public boolean isUserLoggedIn() {
         return isUserLoggedIn(SecurityContextHolder.getContext().getAuthentication());
     }
 
-    private static boolean isUserLoggedIn(Authentication authentication) {
+    private boolean isUserLoggedIn(Authentication authentication) {
         return authentication != null && !(authentication instanceof AnonymousAuthenticationToken);
     }
 
-    public static void logout() {
+    public void logout() {
         var request = VaadinServletRequest.getCurrent().getHttpServletRequest();
 
-        getBean(AuthenticationContext.class).logout();
+        authenticationContext.logout();
 
         var cookie = new Cookie("remember-me", null);
         cookie.setMaxAge(0);

@@ -18,13 +18,13 @@ public abstract class ProtectedView extends VerticalLayout implements BeforeEnte
     @Serial
     private static final long serialVersionUID = 1L;
 
-    final transient DSLContext dsl;
+    final transient DSLContext dslContext;
     final transient OrganizationProvider organizationProvider;
 
     OrganizationRecord organizationRecord;
 
-    ProtectedView(DSLContext dsl, OrganizationProvider organizationProvider) {
-        this.dsl = dsl;
+    ProtectedView(DSLContext dslContext, OrganizationProvider organizationProvider) {
+        this.dslContext = dslContext;
         this.organizationProvider = organizationProvider;
 
         setHeightFull();

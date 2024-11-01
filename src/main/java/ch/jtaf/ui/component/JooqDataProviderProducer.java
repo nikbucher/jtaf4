@@ -15,14 +15,14 @@ import static org.jooq.impl.DSL.upper;
 
 public class JooqDataProviderProducer<R extends Record> {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
     private final Table<R> table;
     private final ConfigurableFilterDataProvider<R, Void, String> dataProvider;
     private final Supplier<Condition> initialCondition;
     private final Supplier<SortField<?>[]> initialSort;
 
-    public JooqDataProviderProducer(DSLContext dsl, Table<R> table, Supplier<Condition> initialCondition, Supplier<SortField<?>[]> initialSort) {
-        this.dsl = dsl;
+    public JooqDataProviderProducer(DSLContext dslContext, Table<R> table, Supplier<Condition> initialCondition, Supplier<SortField<?>[]> initialSort) {
+        this.dslContext = dslContext;
         this.table = table;
         this.initialCondition = initialCondition;
         this.initialSort = initialSort;
@@ -35,7 +35,7 @@ public class JooqDataProviderProducer<R extends Record> {
     }
 
     private Stream<R> fetch(Query<R, String> query) {
-        return dsl
+        return dslContext
             .selectFrom(table)
             .where(createCondition(query))
             .orderBy(createOrderBy(query))
@@ -45,7 +45,7 @@ public class JooqDataProviderProducer<R extends Record> {
     }
 
     private int count(Query<R, String> query) {
-        return dsl
+        return dslContext
             .selectCount()
             .from(table)
             .where(createCondition(query))

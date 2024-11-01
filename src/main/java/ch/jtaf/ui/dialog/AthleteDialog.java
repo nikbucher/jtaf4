@@ -12,6 +12,7 @@ import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
 import org.jooq.DSLContext;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.Collections;
@@ -20,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
 import static ch.jtaf.db.tables.Club.CLUB;
 
 public class AthleteDialog extends EditDialog<AthleteRecord> {
@@ -29,9 +29,14 @@ public class AthleteDialog extends EditDialog<AthleteRecord> {
     private static final long serialVersionUID = 1L;
 
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
+    private final OrganizationProvider organizationProvider;
+    private final DSLContext dslContext;
 
-    public AthleteDialog(String title) {
-        super(title, "600px");
+    public AthleteDialog(String title, DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider) {
+        super(title, "600px", dslContext, transactionTemplate);
+
+        this.dslContext = dslContext;
+        this.organizationProvider = organizationProvider;
     }
 
     @SuppressWarnings("DuplicatedCode")
@@ -104,12 +109,12 @@ public class AthleteDialog extends EditDialog<AthleteRecord> {
     }
 
     private List<ClubRecord> getClubs() {
-        var organizationRecord = getBean(OrganizationProvider.class).getOrganization();
+        var organizationRecord = organizationProvider.getOrganization();
 
         if (organizationRecord == null) {
             return Collections.emptyList();
         } else {
-            var clubs = getBean(DSLContext.class)
+            var clubs = dslContext
                 .selectFrom(CLUB)
                 .where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId()))
                 .fetch();

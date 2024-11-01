@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
 import static ch.jtaf.db.tables.CategoryEvent.CATEGORY_EVENT;
 import static ch.jtaf.db.tables.Event.EVENT;
 
@@ -32,11 +31,13 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
+    private final long organizationId;
 
     private Grid<CategoryEventVO> categoryEventsGrid;
 
-    public CategoryDialog(String title) {
-        super(title, "1600px");
+    public CategoryDialog(String title, DSLContext dslContext, TransactionTemplate transactionTemplate, long organizationId) {
+        super(title, "1600px", dslContext, transactionTemplate);
+        this.organizationId = organizationId;
     }
 
     @SuppressWarnings("DuplicatedCode")
@@ -102,7 +103,7 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
         var addEvent = new Button(getTranslation("Add.Event"));
         addEvent.setId("add-event");
         addEvent.addClickListener(event -> {
-            SearchEventDialog dialog = new SearchEventDialog(getBean(DSLContext.class), binder.getBean(), this::onAssignEvent);
+            SearchEventDialog dialog = new SearchEventDialog(dslContext, organizationId, binder.getBean(), this::onAssignEvent);
             dialog.open();
         });
 
@@ -110,7 +111,7 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
             Button remove = new Button(getTranslation("Remove"));
             remove.addThemeVariants(ButtonVariant.LUMO_ERROR);
             remove.addClickListener(event -> {
-                getBean(TransactionTemplate.class).executeWithoutResult(transactionStatus -> removeEventFromCategory(categoryRecord));
+                transactionTemplate.executeWithoutResult(transactionStatus -> removeEventFromCategory(categoryRecord));
                 categoryEventsGrid.setItems(getCategoryEvents());
                 categoryEventsGrid.getDataProvider().refreshAll();
             });
@@ -124,7 +125,7 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
     }
 
     private void onAssignEvent(SearchEventDialog.AssignEvent assignEvent) {
-        getBean(TransactionTemplate.class).executeWithoutResult(transactionStatus -> {
+        transactionTemplate.executeWithoutResult(transactionStatus -> {
             var categoryEvent = new CategoryEventRecord();
             categoryEvent.setCategoryId(binder.getBean().getId());
             categoryEvent.setEventId(assignEvent.getEventRecord().getId());
@@ -135,7 +136,7 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
                 .orElse(0);
             categoryEvent.setPosition(newPosition);
 
-            getBean(DSLContext.class).attach(categoryEvent);
+            dslContext.attach(categoryEvent);
             categoryEvent.store();
         });
 
@@ -152,7 +153,7 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
 
     private List<CategoryEventVO> getCategoryEvents() {
         if (binder.getBean() != null) {
-            return getBean(DSLContext.class)
+            return dslContext
                 .select(EVENT.ABBREVIATION, EVENT.NAME, EVENT.GENDER, EVENT.EVENT_TYPE, EVENT.A, EVENT.B, EVENT.C, CATEGORY_EVENT.POSITION,
                     CATEGORY_EVENT.CATEGORY_ID, CATEGORY_EVENT.EVENT_ID)
                 .from(CATEGORY_EVENT)
@@ -171,8 +172,8 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
             getTranslation("Confirm"),
             getTranslation("Are.you.sure"),
             getTranslation("Remove"), e -> {
-            getBean(TransactionTemplate.class).executeWithoutResult(transactionStatus ->
-                getBean(DSLContext.class)
+            transactionTemplate.executeWithoutResult(transactionStatus ->
+                dslContext
                     .deleteFrom(CATEGORY_EVENT)
                     .where(CATEGORY_EVENT.CATEGORY_ID.eq(categoryEventVO.categoryId()))
                     .and(CATEGORY_EVENT.EVENT_ID.eq(categoryEventVO.eventId()))

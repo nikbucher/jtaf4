@@ -17,22 +17,24 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
-
 public class GridBuilder {
 
     private GridBuilder() {
     }
 
-    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(Grid<R> grid,
+    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(DSLContext dslContext,
+                                                                                             TransactionTemplate transactionTemplate,
+                                                                                             Grid<R> grid,
                                                                                              EditDialog<R> dialog,
                                                                                              Consumer<R> afterSave,
                                                                                              Supplier<R> onNewRecord,
                                                                                              Runnable afterDelete) {
-        addActionColumnAndSetSelectionListener(grid, dialog, afterSave, onNewRecord, null, null, afterDelete);
+        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, afterSave, onNewRecord, null, null, afterDelete);
     }
 
-    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(Grid<R> grid,
+    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(DSLContext dslContext,
+                                                                                             TransactionTemplate transactionTemplate,
+                                                                                             Grid<R> grid,
                                                                                              EditDialog<R> dialog,
                                                                                              Consumer<R> afterSave,
                                                                                              Supplier<R> onNewRecord,
@@ -47,16 +49,16 @@ public class GridBuilder {
             delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
             delete.addClickListener(event -> {
                 if (insteadOfDelete != null) {
-                    getBean(TransactionTemplate.class).executeWithoutResult(transactionStatus -> insteadOfDelete.accept(updatableRecord));
+                    transactionTemplate.executeWithoutResult(transactionStatus -> insteadOfDelete.accept(updatableRecord));
                 } else {
                     new ConfirmDialog(
                         "delete-confirm-dialog",
                         grid.getTranslation("Confirm"),
                         grid.getTranslation("Are.you.sure"),
                         grid.getTranslation("Delete"), e ->
-                        getBean(TransactionTemplate.class).executeWithoutResult(transactionStatus -> {
+                        transactionTemplate.executeWithoutResult(transactionStatus -> {
                             try {
-                                getBean(DSLContext.class).attach(updatableRecord);
+                                dslContext.attach(updatableRecord);
                                 updatableRecord.delete();
 
                                 afterDelete.run();

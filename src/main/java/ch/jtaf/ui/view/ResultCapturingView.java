@@ -54,20 +54,20 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     private final Grid<Record4<Long, String, String, Long>> grid = new Grid<>();
     private final ConfigurableFilterDataProvider<Record4<Long, String, String, Long>, Void, String> dataProvider;
     private final Div form = new Div();
-    private final transient DSLContext dsl;
+    private final transient DSLContext dslContext;
     private final TransactionTemplate transactionTemplate;
     private final transient ResultCalculator resultCalculator;
     private TextField resultTextField;
     private long competitionId;
 
-    public ResultCapturingView(DSLContext dsl, TransactionTemplate transactionTemplate, ResultCalculator resultCalculator) {
-        this.dsl = dsl;
+    public ResultCapturingView(DSLContext dslContext, TransactionTemplate transactionTemplate, ResultCalculator resultCalculator) {
+        this.dslContext = dslContext;
         this.transactionTemplate = transactionTemplate;
         this.resultCalculator = resultCalculator;
 
         this.dataProvider = new CallbackDataProvider<>(
             query -> {
-                var athletes = getAthletes(dsl, query);
+                var athletes = getAthletes(query);
                 if (athletes.size() == 1) {
                     grid.select(athletes.getFirst());
                     if (resultTextField != null) {
@@ -154,7 +154,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
                         finalResultRecord.setPoints(resultCalculator.calculatePoints(eventRecord, resultValue));
                         points.setValue(finalResultRecord.getPoints() == null ? "" : finalResultRecord.getPoints().toString());
 
-                        dsl.attach(finalResultRecord);
+                        dslContext.attach(finalResultRecord);
                         finalResultRecord.store();
                     }));
                 position++;
@@ -163,7 +163,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
             var dnf = new Checkbox(getTranslation("Dnf"));
             dnf.addValueChangeListener(e ->
                 transactionTemplate.executeWithoutResult(t -> {
-                    int updatedRows = dsl.update(CATEGORY_ATHLETE)
+                    int updatedRows = dslContext.update(CATEGORY_ATHLETE)
                         .set(CATEGORY_ATHLETE.DNF, e.getValue())
                         .where(CATEGORY_ATHLETE.ATHLETE_ID.eq(event.getValue().get(ATHLETE.ID)))
                         .and(CATEGORY_ATHLETE.CATEGORY_ID.eq(event.getValue().get(CATEGORY.ID)))
@@ -174,7 +174,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
                     }
                 }));
 
-            dsl.selectFrom(CATEGORY_ATHLETE)
+            dslContext.selectFrom(CATEGORY_ATHLETE)
                 .where(CATEGORY_ATHLETE.ATHLETE_ID.eq(event.getValue().get(ATHLETE.ID)))
                 .and(CATEGORY_ATHLETE.CATEGORY_ID.eq(event.getValue().get(CATEGORY.ID)))
                 .fetchOptional()
@@ -192,7 +192,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
                     ev -> transactionTemplate.executeWithoutResult(status -> {
                         dnf.setValue(false);
 
-                        dsl.deleteFrom(RESULT)
+                        dslContext.deleteFrom(RESULT)
                             .where(RESULT.ATHLETE_ID.eq(event.getValue().get(ATHLETE.ID)))
                             .and(RESULT.COMPETITION_ID.eq(competitionId))
                             .execute();
@@ -207,7 +207,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     }
 
     private int countAthletes(Query<Record4<Long, String, String, Long>, String> query) {
-        var count = dsl
+        var count = dslContext
             .selectCount()
             .from(ATHLETE)
             .join(CATEGORY_ATHLETE).on(CATEGORY_ATHLETE.ATHLETE_ID.eq(ATHLETE.ID))
@@ -219,8 +219,8 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
         return count != null ? count : 0;
     }
 
-    private Result<Record4<Long, String, String, Long>> getAthletes(DSLContext dsl, Query<Record4<Long, String, String, Long>, String> query) {
-        return dsl
+    private Result<Record4<Long, String, String, Long>> getAthletes(Query<Record4<Long, String, String, Long>, String> query) {
+        return dslContext
             .select(
                 ATHLETE.ID,
                 ATHLETE.LAST_NAME,
@@ -238,7 +238,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     }
 
     private List<EventRecord> getEvents(AbstractField.ComponentValueChangeEvent<Grid<Record4<Long, String, String, Long>>, Record4<Long, String, String, Long>> event) {
-        return dsl
+        return dslContext
             .select(CATEGORY_EVENT.event().fields())
             .from(CATEGORY_EVENT)
             .where(CATEGORY_EVENT.CATEGORY_ID.eq(event.getValue().get(CATEGORY.ID)))
@@ -247,7 +247,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     }
 
     private ResultRecord getResults(AbstractField.ComponentValueChangeEvent<Grid<Record4<Long, String, String, Long>>, Record4<Long, String, String, Long>> event, EventRecord eventRecord) {
-        return dsl
+        return dslContext
             .selectFrom(RESULT)
             .where(RESULT.COMPETITION_ID.eq(competitionId))
             .and(RESULT.ATHLETE_ID.eq(event.getValue().get(ATHLETE.ID)))
@@ -274,7 +274,7 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
 
     @Override
     public String getPageTitle() {
-        var competition = dsl
+        var competition = dslContext
             .select(COMPETITION.series().NAME, COMPETITION.NAME)
             .from(COMPETITION)
             .where(COMPETITION.ID.eq(competitionId))

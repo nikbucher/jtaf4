@@ -1,5 +1,6 @@
 package ch.jtaf.ui.dialog;
 
+import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.AthleteRecord;
 import ch.jtaf.db.tables.records.ClubRecord;
 import com.vaadin.flow.component.ComponentEvent;
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.Map;
@@ -45,11 +47,13 @@ public class SearchAthleteDialog extends Dialog {
     private final Map<Long, ClubRecord> clubRecordMap;
     private final ConfigurableFilterDataProvider<AthleteRecord, Void, String> dataProvider;
 
-    public SearchAthleteDialog(DSLContext dsl, Long organizationId, Long seriesId, ComponentEventListener<AthleteSelectedEvent> athleteSelectedtListener) {
+    public SearchAthleteDialog(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
+                               Long organizationId, Long seriesId, ComponentEventListener<AthleteSelectedEvent> athleteSelectedListener) {
+
         setDraggable(true);
         setResizable(true);
 
-        addListener(AthleteSelectedEvent.class, athleteSelectedtListener);
+        addListener(AthleteSelectedEvent.class, athleteSelectedListener);
 
         setHeaderTitle(getTranslation("Athletes"));
 
@@ -62,22 +66,22 @@ public class SearchAthleteDialog extends Dialog {
 
         getHeader().add(toggle, close);
 
-        var dialog = new AthleteDialog(getTranslation("Athlete"));
+        var dialog = new AthleteDialog(getTranslation("Athlete"), dslContext, transactionTemplate, organizationProvider);
 
         var filter = new TextField(getTranslation("Filter"));
         filter.setAutoselect(true);
         filter.setAutofocus(true);
         filter.setValueChangeMode(ValueChangeMode.EAGER);
 
-        var clubs = dsl.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationId)).fetch();
+        var clubs = dslContext.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationId)).fetch();
         clubRecordMap = clubs.stream().collect(Collectors.toMap(ClubRecord::getId, clubRecord -> clubRecord));
 
         CallbackDataProvider<AthleteRecord, String> callbackDataProvider = DataProvider.fromFilteringCallbacks(
-            query -> dsl
+            query -> dslContext
                 .select(ATHLETE.fields())
                 .from(ATHLETE)
                 .where(ATHLETE.ORGANIZATION_ID.eq(organizationId))
-                .and(ATHLETE.ID.notIn(dsl
+                .and(ATHLETE.ID.notIn(dslContext
                     .select(CATEGORY_ATHLETE.ATHLETE_ID)
                     .from(CATEGORY_ATHLETE)
                     .join(CATEGORY).on(CATEGORY.ID.eq(CATEGORY_ATHLETE.CATEGORY_ID))
@@ -88,11 +92,11 @@ public class SearchAthleteDialog extends Dialog {
                 .offset(query.getOffset()).limit(query.getLimit())
                 .fetchStreamInto(ATHLETE),
             query -> {
-                var count = dsl
+                var count = dslContext
                     .selectCount()
                     .from(ATHLETE)
                     .where(ATHLETE.ORGANIZATION_ID.eq(organizationId))
-                    .and(ATHLETE.ID.notIn(dsl
+                    .and(ATHLETE.ID.notIn(dslContext
                         .select(CATEGORY_ATHLETE.ATHLETE_ID)
                         .from(CATEGORY_ATHLETE)
                         .join(CATEGORY).on(CATEGORY.ID.eq(CATEGORY_ATHLETE.CATEGORY_ID))
@@ -117,7 +121,7 @@ public class SearchAthleteDialog extends Dialog {
         grid.addColumn(athleteRecord -> athleteRecord.getClubId() == null ? null
             : clubRecordMap.get(athleteRecord.getClubId()).getAbbreviation()).setHeader(getTranslation("Club")).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(grid, dialog, athleteRecord -> dataProvider.refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, athleteRecord -> dataProvider.refreshAll(), () -> {
             var newRecord = ATHLETE.newRecord();
             newRecord.setOrganizationId(organizationId);
             return newRecord;

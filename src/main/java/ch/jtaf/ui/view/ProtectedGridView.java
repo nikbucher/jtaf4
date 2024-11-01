@@ -17,13 +17,13 @@ public abstract class ProtectedGridView<R extends Record> extends ProtectedView 
     final ConfigurableFilterDataProvider<R, Void, String> dataProvider;
     final Grid<R> grid;
 
-    protected ProtectedGridView(DSLContext dsl, OrganizationProvider organizationProvider, Table<R> table) {
-        super(dsl, organizationProvider);
+    protected ProtectedGridView(DSLContext dslContext, OrganizationProvider organizationProvider, Table<R> table) {
+        super(dslContext, organizationProvider);
 
         grid = new Grid<>();
         grid.setHeightFull();
 
-        dataProvider = new JooqDataProviderProducer<>(dsl, table, this::initialCondition, this::initialSort).getDataProvider();
+        dataProvider = new JooqDataProviderProducer<>(dslContext, table, this::initialCondition, this::initialSort).getDataProvider();
 
         grid.setItems(dataProvider);
 

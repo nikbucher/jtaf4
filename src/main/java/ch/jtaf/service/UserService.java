@@ -20,15 +20,15 @@ import static ch.jtaf.db.tables.UserGroup.USER_GROUP;
 @Service
 public class UserService {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
     private final I18NProvider i18n;
     private final String publicAddress;
 
-    public UserService(DSLContext dsl, PasswordEncoder passwordEncoder, JavaMailSender mailSender, I18NProvider i18n,
+    public UserService(DSLContext dslContext, PasswordEncoder passwordEncoder, JavaMailSender mailSender, I18NProvider i18n,
                        @Value("${jtaf.public.address}") String publicAddress) {
-        this.dsl = dsl;
+        this.dslContext = dslContext;
         this.passwordEncoder = passwordEncoder;
         this.mailSender = mailSender;
         this.i18n = i18n;
@@ -38,11 +38,11 @@ public class UserService {
     @Transactional(rollbackFor = UserAlreadyExistException.class)
     public SecurityUserRecord createUser(String firstName, String lastName, String email, String password, Locale locale) throws UserAlreadyExistException {
 
-        var count = dsl.selectCount().from(SECURITY_USER).where(SECURITY_USER.EMAIL.eq(email)).fetchOneInto(Integer.class);
+        var count = dslContext.selectCount().from(SECURITY_USER).where(SECURITY_USER.EMAIL.eq(email)).fetchOneInto(Integer.class);
         if (count != null && count > 0) {
             throw new UserAlreadyExistException();
         }
-        var user = dsl.newRecord(SECURITY_USER);
+        var user = dslContext.newRecord(SECURITY_USER);
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setEmail(email);
@@ -51,10 +51,10 @@ public class UserService {
         user.setConfirmed(false);
         user.store();
 
-        var group = dsl.selectFrom(SECURITY_GROUP).where(SECURITY_GROUP.NAME.eq("USER")).fetchOne();
+        var group = dslContext.selectFrom(SECURITY_GROUP).where(SECURITY_GROUP.NAME.eq("USER")).fetchOne();
 
         if (group != null) {
-            var userGroup = dsl.newRecord(USER_GROUP);
+            var userGroup = dslContext.newRecord(USER_GROUP);
             userGroup.setUserId(user.getId());
             userGroup.setGroupId(group.getId());
             userGroup.store();
@@ -78,7 +78,7 @@ public class UserService {
 
     @Transactional
     public boolean confirm(String confirmationId) {
-        var securityUser = dsl
+        var securityUser = dslContext
             .selectFrom(SECURITY_USER)
             .where(SECURITY_USER.CONFIRMATION_ID.eq(confirmationId))
             .fetchOne();

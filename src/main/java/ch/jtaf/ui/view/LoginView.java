@@ -4,12 +4,7 @@ import ch.jtaf.configuration.security.SecurityContext;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.login.LoginI18n;
 import com.vaadin.flow.component.login.LoginOverlay;
-import com.vaadin.flow.router.AfterNavigationEvent;
-import com.vaadin.flow.router.AfterNavigationObserver;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
-import com.vaadin.flow.router.PageTitle;
-import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.*;
 
 import java.io.Serial;
 
@@ -19,8 +14,11 @@ public class LoginView extends LoginOverlay implements AfterNavigationObserver, 
 
     @Serial
     private static final long serialVersionUID = 1L;
+    private final SecurityContext securityContext;
 
-    public LoginView() {
+    public LoginView(SecurityContext securityContext) {
+        this.securityContext = securityContext;
+
         var i18n = LoginI18n.createDefault();
 
         i18n.setHeader(new LoginI18n.Header());
@@ -48,7 +46,7 @@ public class LoginView extends LoginOverlay implements AfterNavigationObserver, 
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        if (SecurityContext.isUserLoggedIn()) {
+        if (securityContext.isUserLoggedIn()) {
             event.forwardTo(DashboardView.class);
         } else {
             setOpened(true);

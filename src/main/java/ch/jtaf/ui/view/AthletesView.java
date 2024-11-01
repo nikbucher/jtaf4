@@ -11,6 +11,7 @@ import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.SortField;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.HashMap;
@@ -29,12 +30,12 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
 
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
 
-    public AthletesView(DSLContext dsl, OrganizationProvider organizationProvider) {
-        super(dsl, organizationProvider, ATHLETE);
+    public AthletesView(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider) {
+        super(dslContext, organizationProvider, ATHLETE);
 
         setHeightFull();
 
-        var dialog = new AthleteDialog(getTranslation("Athlete"));
+        var dialog = new AthleteDialog(getTranslation("Athlete"), dslContext, transactionTemplate, organizationProvider);
 
         var filter = new TextField(getTranslation("Filter"));
         filter.setId("filter");
@@ -53,7 +54,7 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
             ? null
             : clubRecordMap.get(athleteRecord.getClubId()).getAbbreviation()).setHeader(getTranslation("Club")).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(grid, dialog, athleteRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, athleteRecord -> refreshAll(), () -> {
             AthleteRecord newRecord = ATHLETE.newRecord();
             newRecord.setOrganizationId(organizationRecord.getId());
             return newRecord;
@@ -70,7 +71,7 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
     @Override
     protected void refreshAll() {
         super.refreshAll();
-        var clubs = dsl.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId())).fetch();
+        var clubs = dslContext.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId())).fetch();
         clubRecordMap = clubs.stream().collect(Collectors.toMap(ClubRecord::getId, clubRecord -> clubRecord));
     }
 

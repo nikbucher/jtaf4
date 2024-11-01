@@ -31,8 +31,8 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public SeriesListView(DSLContext dsl, OrganizationProvider organizationProvider, SeriesService seriesService) {
-        super(dsl, organizationProvider, SERIES);
+    public SeriesListView(DSLContext dslContext, OrganizationProvider organizationProvider, SeriesService seriesService) {
+        super(dslContext, organizationProvider, SERIES);
 
         setHeightFull();
 
@@ -46,7 +46,7 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
         grid.addColumn(SeriesRecord::getName).setHeader(getTranslation("Name")).setSortable(true).setAutoWidth(true).setKey(SERIES.NAME.getName());
 
         grid.addColumn(seriesRecord ->
-                dsl
+                dslContext
                     .select(DSL.count(CATEGORY_ATHLETE.ATHLETE_ID)).from(CATEGORY_ATHLETE)
                     .where(CATEGORY_ATHLETE.category().SERIES_ID.eq(seriesRecord.getId()))
                     .fetchOneInto(Integer.class)

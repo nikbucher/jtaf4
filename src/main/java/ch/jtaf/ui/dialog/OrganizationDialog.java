@@ -3,6 +3,8 @@ package ch.jtaf.ui.dialog;
 import ch.jtaf.db.tables.records.OrganizationRecord;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.textfield.TextField;
+import org.jooq.DSLContext;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 
@@ -11,8 +13,8 @@ public class OrganizationDialog extends EditDialog<OrganizationRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public OrganizationDialog(String title) {
-        super(title, "600px");
+    public OrganizationDialog(String title, DSLContext dslContext, TransactionTemplate transactionTemplate) {
+        super(title, "600px", dslContext, transactionTemplate);
     }
 
     @Override

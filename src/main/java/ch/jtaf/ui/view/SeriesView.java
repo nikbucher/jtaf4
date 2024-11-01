@@ -3,6 +3,7 @@ package ch.jtaf.ui.view;
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.*;
 import ch.jtaf.service.NumberAndSheetsService;
+import ch.jtaf.service.SeriesService;
 import ch.jtaf.ui.dialog.*;
 import ch.jtaf.ui.layout.MainLayout;
 import ch.jtaf.ui.validator.NotEmptyValidator;
@@ -74,8 +75,9 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private Map<Long, ClubRecord> clubRecordMap;
 
-    public SeriesView(DSLContext dsl, TransactionTemplate transactionTemplate, NumberAndSheetsService numberAndSheetsService, OrganizationProvider organizationProvider) {
-        super(dsl, organizationProvider);
+    public SeriesView(DSLContext dslContext, TransactionTemplate transactionTemplate, NumberAndSheetsService numberAndSheetsService,
+                      OrganizationProvider organizationProvider, SeriesService seriesService) {
+        super(dslContext, organizationProvider);
         this.transactionTemplate = transactionTemplate;
         this.numberAndSheetsService = numberAndSheetsService;
 
@@ -103,7 +105,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
                     var fileName = event.getFileName();
                     var inputStream = buffer.getInputStream(fileName);
                     binder.getBean().setLogo(inputStream.readAllBytes());
-                    dsl.attach(binder.getBean());
+                    dslContext.attach(binder.getBean());
                     binder.getBean().store();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -140,7 +142,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickListener(event ->
             transactionTemplate.executeWithoutResult(transactionStatus -> {
-                dsl.attach(binder.getBean());
+                dslContext.attach(binder.getBean());
                 binder.getBean().store();
 
                 Notification.show(getTranslation("Series.saved"), 6000, Notification.Position.TOP_END);
@@ -153,8 +155,8 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         copyCategories.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         copyCategories.addClickListener(event -> {
             if (seriesRecord != null) {
-                var dialog = new CopyCategoriesDialog(organizationProvider.getOrganization().getId(), seriesRecord.getId());
-                dialog.addAfterCopyListener(e-> refreshAll());
+                var dialog = new CopyCategoriesDialog(organizationProvider.getOrganization().getId(), seriesRecord.getId(), dslContext, seriesService);
+                dialog.addAfterCopyListener(e -> refreshAll());
                 dialog.open();
             }
         });
@@ -197,18 +199,18 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     @Override
     protected void refreshAll() {
-        var competitionRecords = dsl.selectFrom(COMPETITION).where(COMPETITION.SERIES_ID.eq(seriesRecord.getId()))
+        var competitionRecords = dslContext.selectFrom(COMPETITION).where(COMPETITION.SERIES_ID.eq(seriesRecord.getId()))
             .orderBy(COMPETITION.COMPETITION_DATE).fetch();
         competitionsGrid.setItems(competitionRecords);
 
-        var categoryRecords = dsl.selectFrom(CATEGORY).where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))
+        var categoryRecords = dslContext.selectFrom(CATEGORY).where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))
             .orderBy(CATEGORY.ABBREVIATION).fetch();
         categoriesGrid.setItems(categoryRecords);
 
-        var clubs = dsl.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId())).fetch();
+        var clubs = dslContext.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId())).fetch();
         clubRecordMap = clubs.stream().collect(Collectors.toMap(ClubRecord::getId, clubRecord -> clubRecord));
 
-        var athleteRecords = dsl
+        var athleteRecords = dslContext
             .select(CATEGORY_ATHLETE.athlete().fields())
             .from(CATEGORY_ATHLETE)
             .where(CATEGORY_ATHLETE.category().SERIES_ID.eq(seriesRecord.getId()))
@@ -225,7 +227,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             seriesRecord = SERIES.newRecord();
             seriesRecord.setOrganizationId(organizationRecord.getId());
         } else {
-            seriesRecord = dsl.selectFrom(SERIES).where(SERIES.ID.eq(seriesId)).fetchOne();
+            seriesRecord = dslContext.selectFrom(SERIES).where(SERIES.ID.eq(seriesId)).fetchOne();
         }
         binder.setBean(seriesRecord);
 
@@ -233,7 +235,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             // Series must be saved first
             copyCategories.setVisible(false);
         } else {
-            if (dsl.fetchCount(CATEGORY, CATEGORY.SERIES_ID.eq(seriesId)) > 0) {
+            if (dslContext.fetchCount(CATEGORY, CATEGORY.SERIES_ID.eq(seriesId)) > 0) {
                 // Copy is only possible if no categories are added
                 copyCategories.setVisible(false);
             }
@@ -246,7 +248,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     }
 
     private void createCompetitionsSection() {
-        var dialog = new CompetitionDialog(getTranslation("Category"));
+        var dialog = new CompetitionDialog(getTranslation("Category"), dslContext, transactionTemplate);
 
         competitionsGrid = new Grid<>();
         competitionsGrid.setId("competitions-grid");
@@ -290,7 +292,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             return new HorizontalLayout(sheetsOrderedByAthlete, sheetsOrderedByClub, numbersOrderedByAthlete, numbersOrderedByClub);
         })).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(competitionsGrid, dialog, competitionRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, competitionsGrid, dialog, competitionRecord -> refreshAll(), () -> {
             var newRecord = COMPETITION.newRecord();
             newRecord.setMedalPercentage(0);
             newRecord.setSeriesId(seriesRecord.getId());
@@ -299,7 +301,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     }
 
     private void createCategoriesSection() {
-        var dialog = new CategoryDialog(getTranslation("Category"));
+        var dialog = new CategoryDialog(getTranslation("Category"), dslContext, transactionTemplate, organizationProvider.getOrganization().getId());
 
         categoriesGrid = new Grid<>();
         categoriesGrid.setId("categories-grid");
@@ -320,7 +322,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             return new HorizontalLayout(sheet);
         })).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(categoriesGrid, dialog, categoryRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, categoriesGrid, dialog, categoryRecord -> refreshAll(), () -> {
             var newRecord = CATEGORY.newRecord();
             newRecord.setSeriesId(seriesRecord.getId());
             return newRecord;
@@ -342,7 +344,8 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         var assign = new Button(getTranslation("Assign.Athlete"));
         assign.setId("assign-athlete");
         assign.addClickListener(event -> {
-            SearchAthleteDialog dialog = new SearchAthleteDialog(dsl, organizationRecord.getId(), seriesRecord.getId(), this::onAthleteSelect);
+            SearchAthleteDialog dialog = new SearchAthleteDialog(dslContext, transactionTemplate, organizationProvider,
+                organizationRecord.getId(), seriesRecord.getId(), this::onAthleteSelect);
             dialog.open();
         });
 
@@ -368,7 +371,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         transactionTemplate.executeWithoutResult(transactionStatus -> {
             var athleteRecord = athleteSelectedEvent.getAthleteRecord();
 
-            var categoryId = dsl
+            var categoryId = dslContext
                 .select(CATEGORY.ID)
                 .from(CATEGORY)
                 .where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))
@@ -380,7 +383,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             var categoryAthleteRecord = CATEGORY_ATHLETE.newRecord();
             categoryAthleteRecord.setAthleteId(athleteRecord.getId());
             categoryAthleteRecord.setCategoryId(categoryId);
-            categoryAthleteRecord.attach(dsl.configuration());
+            categoryAthleteRecord.attach(dslContext.configuration());
             categoryAthleteRecord.store();
         });
 
@@ -389,10 +392,10 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private void removeAthleteFromSeries(UpdatableRecord<?> updatableRecord) {
         var athleteRecord = (AthleteRecord) updatableRecord;
-        dsl
+        dslContext
             .deleteFrom(CATEGORY_ATHLETE)
             .where(CATEGORY_ATHLETE.ATHLETE_ID.eq(athleteRecord.getId()))
-            .and(CATEGORY_ATHLETE.CATEGORY_ID.in(dsl.select(CATEGORY.ID).from(CATEGORY).where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))))
+            .and(CATEGORY_ATHLETE.CATEGORY_ID.in(dslContext.select(CATEGORY.ID).from(CATEGORY).where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))))
             .execute();
 
         refreshAll();

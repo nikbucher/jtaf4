@@ -21,10 +21,10 @@ import static org.jooq.impl.DSL.*;
 @Service
 public class SeriesRankingService {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
 
-    public SeriesRankingService(DSLContext dsl) {
-        this.dsl = dsl;
+    public SeriesRankingService(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     public byte[] getSeriesRankingAsPdf(Long seriesId, Locale locale) {
@@ -32,7 +32,7 @@ public class SeriesRankingService {
     }
 
     public Optional<SeriesRankingData> getSeriesRanking(Long seriesId) {
-        return dsl
+        return dslContext
             .select(
                 COMPETITION.series().NAME,
                 count(COMPETITION.ID),
@@ -81,7 +81,7 @@ public class SeriesRankingService {
     }
 
     public Optional<ClubRankingData> getClubRanking(Long seriesId) {
-        return dsl
+        return dslContext
             .select(
                 SERIES.NAME,
                 multiset(

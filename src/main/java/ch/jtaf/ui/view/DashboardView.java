@@ -41,15 +41,17 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
     private static final String NAME_MIN_WIDTH = "350px";
     private static final String BUTTON_WIDTH = "220px";
 
-    public DashboardView(DSLContext dsl, SeriesRankingService seriesRankingService, CompetitionRankingService competitionRankingService) {
+    public DashboardView(DSLContext dslContext, SeriesRankingService seriesRankingService, CompetitionRankingService competitionRankingService,
+                         SecurityContext securityContext) {
         getClassNames().add("dashboard");
 
         var verticalLayout = new VerticalLayout();
         add(verticalLayout);
 
         int seriesIndex = 1;
-        var seriesRecords = dsl.selectFrom(SERIES)
-            .orderBy(DSL.field(dsl.select(DSL.max(COMPETITION.COMPETITION_DATE)).from(COMPETITION).where(COMPETITION.SERIES_ID.eq(SERIES.ID))).desc())
+        var seriesRecords = dslContext
+            .selectFrom(SERIES)
+            .orderBy(DSL.field(dslContext.select(DSL.max(COMPETITION.COMPETITION_DATE)).from(COMPETITION).where(COMPETITION.SERIES_ID.eq(SERIES.ID))).desc())
             .fetch();
         for (var series : seriesRecords) {
             HorizontalLayout seriesLayout = new HorizontalLayout();
@@ -104,7 +106,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
             buttonLayout.add(clubRankingDiv);
 
             int competitionIndex = 1;
-            var competitionRecords = dsl.selectFrom(COMPETITION)
+            var competitionRecords = dslContext.selectFrom(COMPETITION)
                 .where(COMPETITION.SERIES_ID.eq(series.getId()))
                 .fetch();
             for (var competition : competitionRecords) {
@@ -143,7 +145,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
                 var competitionRankingDiv = new Div(competitionRankingAnchor);
                 links.add(competitionRankingDiv);
 
-                if (SecurityContext.isUserLoggedIn()) {
+                if (securityContext.isUserLoggedIn()) {
                     var diplomaAnchor = new Anchor(new StreamResource("diploma" + competition.getId() + ".pdf",
                         () -> {
                             var pdf = competitionRankingService.getDiplomasAsPdf(competition.getId(), getLocale());

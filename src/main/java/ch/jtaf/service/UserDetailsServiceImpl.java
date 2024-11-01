@@ -17,21 +17,21 @@ import static ch.jtaf.db.tables.UserGroup.USER_GROUP;
 @Primary
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
 
-    public UserDetailsServiceImpl(DSLContext dsl) {
-        this.dsl = dsl;
+    public UserDetailsServiceImpl(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var securityUserRecord = dsl
+        var securityUserRecord = dslContext
             .selectFrom(SECURITY_USER)
             .where(SECURITY_USER.EMAIL.eq(username))
             .fetchOne();
 
         if (securityUserRecord != null) {
-            var groups = dsl
+            var groups = dslContext
                 .select(USER_GROUP.securityGroup().NAME)
                 .from(USER_GROUP)
                 .where(USER_GROUP.USER_ID.eq(securityUserRecord.getId()))

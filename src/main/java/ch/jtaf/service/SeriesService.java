@@ -11,30 +11,30 @@ import static ch.jtaf.db.tables.Series.SERIES;
 @Service
 public class SeriesService {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
 
-    public SeriesService(DSLContext dsl) {
-        this.dsl = dsl;
+    public SeriesService(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     @Transactional
     public void copyCategories(Long seriesIdToCopy, Long currentSeriesId) {
-        dsl.selectFrom(CATEGORY)
+        dslContext.selectFrom(CATEGORY)
             .where(CATEGORY.SERIES_ID.eq(seriesIdToCopy))
             .fetch()
             .forEach(category -> {
                 var copyCategory = category.copy();
                 copyCategory.setSeriesId(currentSeriesId);
-                dsl.attach(copyCategory);
+                dslContext.attach(copyCategory);
                 copyCategory.store();
-                dsl.selectFrom(CATEGORY_EVENT)
+                dslContext.selectFrom(CATEGORY_EVENT)
                     .where(CATEGORY_EVENT.CATEGORY_ID.eq(category.getId()))
                     .fetch()
                     .forEach(categoryEvent -> {
                         var copyCategoryEvent = categoryEvent.copy();
                         copyCategoryEvent.setCategoryId(copyCategory.getId());
                         copyCategoryEvent.setEventId(categoryEvent.getEventId());
-                        dsl.attach(copyCategoryEvent);
+                        dslContext.attach(copyCategoryEvent);
                         copyCategoryEvent.store();
                     });
             });
@@ -42,15 +42,15 @@ public class SeriesService {
 
     @Transactional
     public void deleteSeries(long seriesId) {
-        dsl.deleteFrom(CATEGORY_EVENT)
+        dslContext.deleteFrom(CATEGORY_EVENT)
             .where(CATEGORY_EVENT.category().SERIES_ID.eq(seriesId))
             .execute();
 
-        dsl.deleteFrom(CATEGORY)
+        dslContext.deleteFrom(CATEGORY)
             .where(CATEGORY.SERIES_ID.eq(seriesId))
             .execute();
 
-        dsl.deleteFrom(SERIES)
+        dslContext.deleteFrom(SERIES)
             .where(SERIES.ID.eq(seriesId))
             .execute();
     }

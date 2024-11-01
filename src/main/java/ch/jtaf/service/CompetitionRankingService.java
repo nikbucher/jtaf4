@@ -23,10 +23,10 @@ import static org.jooq.impl.DSL.*;
 @Service
 public class CompetitionRankingService {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
 
-    public CompetitionRankingService(DSLContext dsl) {
-        this.dsl = dsl;
+    public CompetitionRankingService(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     public byte[] getCompetitionRankingAsPdf(Long competitionId, Locale locale) {
@@ -42,7 +42,7 @@ public class CompetitionRankingService {
     }
 
     public Optional<CompetitionRankingData> getCompetitionRanking(Long competitionId) {
-        return dsl
+        return dslContext
             .select(
                 COMPETITION.NAME,
                 COMPETITION.COMPETITION_DATE,
@@ -89,7 +89,7 @@ public class CompetitionRankingService {
     }
 
     public Optional<EventsRankingData> getEventsRanking(Long competitionId) {
-        return dsl
+        return dslContext
             .select(
                 COMPETITION.NAME,
                 COMPETITION.COMPETITION_DATE,
@@ -121,7 +121,7 @@ public class CompetitionRankingService {
     }
 
     private byte[] getLogo(Long competitionId) {
-        var logoRecord = dsl
+        var logoRecord = dslContext
             .select(COMPETITION.series().LOGO)
             .from(COMPETITION)
             .where(COMPETITION.ID.eq(competitionId))

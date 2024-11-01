@@ -28,10 +28,10 @@ import static org.jooq.impl.DSL.select;
 @Service
 public class NumberAndSheetsService {
 
-    private final DSLContext dsl;
+    private final DSLContext dslContext;
 
-    public NumberAndSheetsService(DSLContext dsl) {
-        this.dsl = dsl;
+    public NumberAndSheetsService(DSLContext dslContext) {
+        this.dslContext = dslContext;
     }
 
     public byte[] createNumbers(Long seriesId, Locale locale, Field<?>... orderBy) {
@@ -47,7 +47,7 @@ public class NumberAndSheetsService {
     }
 
     private Optional<NumbersAndSheetsAthlete> createDummyAthlete(Long categoryId) {
-        return dsl
+        return dslContext
             .select(
                 DSL.inline(null, SQLDataType.BIGINT),
                 DSL.inline(null, SQLDataType.VARCHAR),
@@ -72,7 +72,7 @@ public class NumberAndSheetsService {
     }
 
     private Optional<NumbersAndSheetsCompetition> getCompetition(Long competitionId) {
-        return dsl
+        return dslContext
             .select(COMPETITION.NAME, COMPETITION.COMPETITION_DATE)
             .from(COMPETITION)
             .where(COMPETITION.ID.eq(competitionId))
@@ -80,7 +80,7 @@ public class NumberAndSheetsService {
     }
 
     private byte[] getLogo(Long id) {
-        var logoRecord = dsl.select(SERIES.LOGO).from(SERIES).where(SERIES.ID.eq(id)).fetchOne();
+        var logoRecord = dslContext.select(SERIES.LOGO).from(SERIES).where(SERIES.ID.eq(id)).fetchOne();
         if (logoRecord != null) {
             return logoRecord.get(SERIES.LOGO);
         } else {
@@ -89,7 +89,7 @@ public class NumberAndSheetsService {
     }
 
     private List<NumbersAndSheetsAthlete> getAthletes(Long seriesId, Field<?>... orderBy) {
-        return dsl
+        return dslContext
             .select(
                 ATHLETE.ID,
                 ATHLETE.FIRST_NAME,

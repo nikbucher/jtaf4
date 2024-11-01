@@ -1,6 +1,5 @@
 package ch.jtaf.ui.dialog;
 
-import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.CategoryRecord;
 import ch.jtaf.db.tables.records.EventRecord;
 import com.vaadin.flow.component.ComponentEvent;
@@ -24,7 +23,6 @@ import org.jooq.impl.DSL;
 
 import java.io.Serial;
 
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
 import static ch.jtaf.db.tables.CategoryEvent.CATEGORY_EVENT;
 import static ch.jtaf.db.tables.Event.EVENT;
 import static org.jooq.impl.DSL.upper;
@@ -42,7 +40,8 @@ public class SearchEventDialog extends Dialog {
 
     private final ConfigurableFilterDataProvider<EventRecord, Void, String> dataProvider;
 
-    public SearchEventDialog(DSLContext dsl, CategoryRecord categoryRecord, ComponentEventListener<AssignEvent> assignEventListener) {
+    public SearchEventDialog(DSLContext dslContext, long organizationId, CategoryRecord categoryRecord,
+                             ComponentEventListener<AssignEvent> assignEventListener) {
         setId("search-event-dialog");
 
         addListener(AssignEvent.class, assignEventListener);
@@ -68,11 +67,11 @@ public class SearchEventDialog extends Dialog {
         filter.setValueChangeMode(ValueChangeMode.EAGER);
 
         CallbackDataProvider<EventRecord, String> callbackDataProvider = DataProvider.fromFilteringCallbacks(
-            query -> dsl
+            query -> dslContext
                 .selectFrom(EVENT)
-                .where(EVENT.ORGANIZATION_ID.eq(getBean(OrganizationProvider.class).getOrganization().getId()))
+                .where(EVENT.ORGANIZATION_ID.eq(organizationId))
                 .and(EVENT.GENDER.eq(categoryRecord.getGender()))
-                .and(EVENT.ID.notIn(dsl
+                .and(EVENT.ID.notIn(dslContext
                     .select(CATEGORY_EVENT.EVENT_ID)
                     .from(CATEGORY_EVENT)
                     .where(CATEGORY_EVENT.CATEGORY_ID.eq(categoryRecord.getId()))
@@ -82,12 +81,12 @@ public class SearchEventDialog extends Dialog {
                 .offset(query.getOffset()).limit(query.getLimit())
                 .fetchStream(),
             query -> {
-                var count = dsl
+                var count = dslContext
                     .selectCount()
                     .from(EVENT)
-                    .where(EVENT.ORGANIZATION_ID.eq(getBean(OrganizationProvider.class).getOrganization().getId()))
+                    .where(EVENT.ORGANIZATION_ID.eq(organizationId))
                     .and(EVENT.GENDER.eq(categoryRecord.getGender()))
-                    .and(EVENT.ID.notIn(dsl
+                    .and(EVENT.ID.notIn(dslContext
                         .select(CATEGORY_EVENT.EVENT_ID)
                         .from(CATEGORY_EVENT)
                         .where(CATEGORY_EVENT.CATEGORY_ID.eq(categoryRecord.getId()))

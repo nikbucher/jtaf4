@@ -37,6 +37,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver{
     private final String applicationVersion;
 
     private final Div version = new Div();
+    private final SecurityContext securityContext;
     private Button login;
     private Button logout;
 
@@ -48,9 +49,10 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver{
     private RouterLink athletesLink;
     private RouterLink register;
 
-    public MainLayout(OrganizationProvider organizationProvider, @Value("${application.version}") String applicationVersion) {
+    public MainLayout(OrganizationProvider organizationProvider, @Value("${application.version}") String applicationVersion, SecurityContext securityContext) {
         this.organizationProvider = organizationProvider;
         this.applicationVersion = applicationVersion;
+        this.securityContext = securityContext;
 
         setPrimarySection(Section.DRAWER);
         addToNavbar(false, createHeaderContent());
@@ -82,7 +84,7 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver{
         login = new Button("Login", e -> UI.getCurrent().navigate(OrganizationsView.class));
         login.setVisible(false);
 
-        logout = new Button("Logout", e -> SecurityContext.logout());
+        logout = new Button("Logout", e -> securityContext.logout());
         logout.setId("logout");
 
         info.add(about, version, register, login, logout);
@@ -194,11 +196,11 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver{
 
     @Override
     public void beforeEnter(BeforeEnterEvent event) {
-        if (SecurityContext.isUserLoggedIn()) {
+        if (securityContext.isUserLoggedIn()) {
             register.setVisible(false);
             login.setVisible(false);
 
-            logout.setText("Logout (%s)".formatted(SecurityContext.getUsername()));
+            logout.setText("Logout (%s)".formatted(securityContext.getUsername()));
             logout.setVisible(true);
 
             var organization = organizationProvider.getOrganization();

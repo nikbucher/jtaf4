@@ -36,23 +36,26 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final transient DSLContext dsl;
+    private final transient DSLContext dslContext;
     private final TransactionTemplate transactionTemplate;
     private final Grid<OrganizationRecord> grid;
+    private final SecurityContext securityContext;
 
-    public OrganizationsView(DSLContext dsl, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider) {
-        this.dsl = dsl;
+    public OrganizationsView(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
+                             SecurityContext securityContext) {
+        this.dslContext = dslContext;
         this.transactionTemplate = transactionTemplate;
+        this.securityContext = securityContext;
 
         setHeightFull();
 
-        var dialog = new OrganizationDialog(getTranslation("Organization"));
+        var dialog = new OrganizationDialog(getTranslation("Organization"), dslContext, transactionTemplate);
 
         var add = new Button(getTranslation("Add"));
         add.setId("add-button");
         add.addClickListener(event -> {
             var organizationRecord = ORGANIZATION.newRecord();
-            organizationRecord.setOwner(SecurityContext.getUsername());
+            organizationRecord.setOwner(securityContext.getUsername());
             dialog.open(organizationRecord, this::loadData);
         });
 
@@ -83,9 +86,9 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
                     getTranslation("Are.you.sure"),
                     getTranslation("Delete"), e -> transactionTemplate.executeWithoutResult(transactionStatus -> {
                     try {
-                        dsl.deleteFrom(ORGANIZATION_USER).where(ORGANIZATION_USER.ORGANIZATION_ID.eq(organizationRecord.getId())).execute();
+                        dslContext.deleteFrom(ORGANIZATION_USER).where(ORGANIZATION_USER.ORGANIZATION_ID.eq(organizationRecord.getId())).execute();
 
-                        dsl.attach(organizationRecord);
+                        dslContext.attach(organizationRecord);
                         organizationRecord.delete();
 
                         loadData(null);
@@ -111,22 +114,22 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
     private void loadData(OrganizationRecord organizationRecord) {
         if (organizationRecord != null) {
             transactionTemplate.executeWithoutResult(transactionStatus ->
-                dsl.selectFrom(SECURITY_USER)
-                    .where(SECURITY_USER.EMAIL.eq(SecurityContext.getUsername()))
+                dslContext.selectFrom(SECURITY_USER)
+                    .where(SECURITY_USER.EMAIL.eq(securityContext.getUsername()))
                     .fetchOptional()
                     .ifPresent(user -> {
                         var organizationUser = new OrganizationUserRecord();
                         organizationUser.setOrganizationId(organizationRecord.getId());
                         organizationUser.setUserId(user.getId());
-                        dsl.attach(organizationUser);
+                        dslContext.attach(organizationUser);
                         organizationUser.store();
                     }));
         }
 
-        var organizations = dsl
+        var organizations = dslContext
             .select(ORGANIZATION_USER.organization().fields())
             .from(ORGANIZATION_USER)
-            .where(ORGANIZATION_USER.securityUser().EMAIL.eq(SecurityContext.getUsername()))
+            .where(ORGANIZATION_USER.securityUser().EMAIL.eq(securityContext.getUsername()))
             .fetch().into(ORGANIZATION);
 
         grid.setItems(organizations);

@@ -8,6 +8,7 @@ import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.SortField;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 
@@ -20,19 +21,19 @@ public class ClubsView extends ProtectedGridView<ClubRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public ClubsView(DSLContext dsl, OrganizationProvider organizationProvider) {
-        super(dsl, organizationProvider, CLUB);
+    public ClubsView(DSLContext dslContext, OrganizationProvider organizationProvider, TransactionTemplate transactionTemplate) {
+        super(dslContext, organizationProvider, CLUB);
 
         setHeightFull();
 
-        var dialog = new ClubDialog(getTranslation("Clubs"));
+        var dialog = new ClubDialog(getTranslation("Clubs"), dslContext, transactionTemplate);
 
         grid.setId("clubs-grid");
 
         grid.addColumn(ClubRecord::getAbbreviation).setHeader(getTranslation("Abbreviation")).setSortable(true).setAutoWidth(true).setKey(CLUB.ABBREVIATION.getName());
         grid.addColumn(ClubRecord::getName).setHeader(getTranslation("Name")).setSortable(true).setAutoWidth(true).setKey(CLUB.NAME.getName());
 
-        addActionColumnAndSetSelectionListener(grid, dialog, clubRecord -> refreshAll(),
+        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, clubRecord -> refreshAll(),
             () -> {
                 ClubRecord newRecord = CLUB.newRecord();
                 newRecord.setOrganizationId(organizationRecord.getId());

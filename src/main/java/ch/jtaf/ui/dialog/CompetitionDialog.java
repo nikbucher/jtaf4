@@ -5,6 +5,8 @@ import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.textfield.TextField;
+import org.jooq.DSLContext;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 
@@ -13,8 +15,8 @@ public class CompetitionDialog extends EditDialog<CompetitionRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public CompetitionDialog(String title) {
-        super(title, "600px");
+    public CompetitionDialog(String title, DSLContext dslContext, TransactionTemplate transactionTemplate) {
+        super(title, "600px", dslContext, transactionTemplate);
     }
 
     @Override
