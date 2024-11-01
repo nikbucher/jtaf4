@@ -39,7 +39,7 @@ class ConfirmationViewTest extends KaribuTest {
 
     @Test
     void invalid_query_parameter() {
-        UI.getCurrent().navigate(ConfirmView.class);
+        UI.getCurrent().navigate(ConfirmView.class, new QueryParameters(Map.of("cf", List.of("abc"))));
 
         _assert(H1.class, 1, spec -> spec.withText("The confirmation was not successful."));
     }

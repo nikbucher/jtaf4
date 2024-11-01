@@ -38,8 +38,9 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
 
     private final transient DSLContext dslContext;
     private final TransactionTemplate transactionTemplate;
+    private final transient SecurityContext securityContext;
+
     private final Grid<OrganizationRecord> grid;
-    private final SecurityContext securityContext;
 
     public OrganizationsView(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
                              SecurityContext securityContext) {

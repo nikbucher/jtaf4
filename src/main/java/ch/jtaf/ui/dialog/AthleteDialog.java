@@ -29,13 +29,11 @@ public class AthleteDialog extends EditDialog<AthleteRecord> {
     private static final long serialVersionUID = 1L;
 
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
-    private final OrganizationProvider organizationProvider;
-    private final DSLContext dslContext;
+    private final transient OrganizationProvider organizationProvider;
 
     public AthleteDialog(String title, DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider) {
         super(title, "600px", dslContext, transactionTemplate);
 
-        this.dslContext = dslContext;
         this.organizationProvider = organizationProvider;
     }
 

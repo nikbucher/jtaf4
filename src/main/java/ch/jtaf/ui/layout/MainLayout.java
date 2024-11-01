@@ -35,9 +35,9 @@ public class MainLayout extends AppLayout implements BeforeEnterObserver{
 
     private final transient OrganizationProvider organizationProvider;
     private final String applicationVersion;
+    private final transient SecurityContext securityContext;
 
     private final Div version = new Div();
-    private final SecurityContext securityContext;
     private Button login;
     private Button logout;
 

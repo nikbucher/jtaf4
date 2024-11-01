@@ -14,7 +14,8 @@ public class LoginView extends LoginOverlay implements AfterNavigationObserver, 
 
     @Serial
     private static final long serialVersionUID = 1L;
-    private final SecurityContext securityContext;
+
+    private final transient SecurityContext securityContext;
 
     public LoginView(SecurityContext securityContext) {
         this.securityContext = securityContext;

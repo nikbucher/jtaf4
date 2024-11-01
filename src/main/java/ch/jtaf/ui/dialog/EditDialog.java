@@ -22,7 +22,7 @@ public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
     public static final String FULLSCREEN = "fullscreen";
 
     private final String initialWidth;
-    protected final DSLContext dslContext;
+    protected final transient DSLContext dslContext;
     protected final TransactionTemplate transactionTemplate;
 
     private boolean isFullScreen = false;
