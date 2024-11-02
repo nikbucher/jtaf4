@@ -1,6 +1,7 @@
 # JTAF - Track and Field
 
 ![CI](https://github.com/martinellich/jtaf4/actions/workflows/ci.yml/badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=72services_jtaf4&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=72services_jtaf4)
 
 ## Goals
 
