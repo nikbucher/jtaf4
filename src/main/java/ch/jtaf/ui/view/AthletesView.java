@@ -11,7 +11,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
 
 import java.io.Serial;
@@ -21,7 +20,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ch.jtaf.db.tables.Athlete.ATHLETE;
-import static ch.jtaf.db.tables.Club.CLUB;
 import static ch.jtaf.ui.component.GridBuilder.addActionColumnAndSetSelectionListener;
 
 @Route(layout = MainLayout.class)
@@ -29,14 +27,13 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
-    private final DSLContext dslContext;
 
+    private final ClubRepository clubRepository;
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
 
-    public AthletesView(DSLContext dslContext, AthleteRepository athleteRepository, ClubRepository clubRepository,
-                        OrganizationProvider organizationProvider) {
+    public AthletesView(AthleteRepository athleteRepository, ClubRepository clubRepository, OrganizationProvider organizationProvider) {
         super(athleteRepository, organizationProvider, ATHLETE);
-        this.dslContext = dslContext;
+        this.clubRepository = clubRepository;
 
         setHeightFull();
 
@@ -76,7 +73,7 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
     @Override
     protected void refreshAll() {
         super.refreshAll();
-        var clubs = dslContext.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId())).fetch();
+        var clubs = clubRepository.findByOrganizationId(organizationRecord.getId());
         clubRecordMap = clubs.stream().collect(Collectors.toMap(ClubRecord::getId, clubRecord -> clubRecord));
     }
 

@@ -2,10 +2,7 @@ package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.CategoryEventRecord;
 import ch.jtaf.db.tables.records.CategoryRecord;
-import ch.jtaf.domain.CategoryEventRepository;
-import ch.jtaf.domain.CategoryEventVO;
-import ch.jtaf.domain.CategoryRepository;
-import ch.jtaf.domain.Gender;
+import ch.jtaf.domain.*;
 import ch.jtaf.ui.converter.JtafStringToIntegerConverter;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.button.Button;
@@ -16,7 +13,6 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
-import org.jooq.DSLContext;
 import org.jooq.UpdatableRecord;
 
 import java.io.Serial;
@@ -33,15 +29,15 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
     private static final long serialVersionUID = 1L;
     private final long organizationId;
     private final CategoryEventRepository categoryEventRepository;
-    private final DSLContext dslContext;
+    private final EventRepository eventRepository;
 
     private Grid<CategoryEventVO> categoryEventsGrid;
 
     public CategoryDialog(String title, CategoryRepository categoryRepository, CategoryEventRepository categoryEventRepository,
-                          DSLContext dslContext, long organizationId) {
+                          EventRepository eventRepository, long organizationId) {
         super(title, "1600px", categoryRepository);
         this.categoryEventRepository = categoryEventRepository;
-        this.dslContext = dslContext;
+        this.eventRepository = eventRepository;
         this.organizationId = organizationId;
     }
 
@@ -108,7 +104,7 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
         var addEvent = new Button(getTranslation("Add.Event"));
         addEvent.setId("add-event");
         addEvent.addClickListener(event -> {
-            SearchEventDialog dialog = new SearchEventDialog(dslContext, organizationId, binder.getBean(), this::onAssignEvent);
+            SearchEventDialog dialog = new SearchEventDialog(eventRepository, organizationId, binder.getBean(), this::onAssignEvent);
             dialog.open();
         });
 
