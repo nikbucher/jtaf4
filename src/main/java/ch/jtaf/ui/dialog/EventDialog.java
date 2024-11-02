@@ -1,8 +1,8 @@
 package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.EventRecord;
-import ch.jtaf.model.EventType;
-import ch.jtaf.model.Gender;
+import ch.jtaf.domain.EventType;
+import ch.jtaf.domain.Gender;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;

@@ -2,7 +2,8 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.SeriesRecord;
-import ch.jtaf.service.SeriesService;
+import ch.jtaf.domain.SeriesRepository;
+import ch.jtaf.domain.SeriesService;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import ch.jtaf.ui.util.LogoUtil;
@@ -16,11 +17,12 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.SortField;
+import org.jooq.OrderField;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
 import java.io.Serial;
+import java.util.List;
 
 import static ch.jtaf.db.tables.CategoryAthlete.CATEGORY_ATHLETE;
 import static ch.jtaf.db.tables.Series.SERIES;
@@ -31,8 +33,8 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public SeriesListView(DSLContext dslContext, OrganizationProvider organizationProvider, SeriesService seriesService) {
-        super(dslContext, organizationProvider, SERIES);
+    public SeriesListView(SeriesRepository seriesRepository, DSLContext dslContext, OrganizationProvider organizationProvider, SeriesService seriesService) {
+        super(seriesRepository, organizationProvider, SERIES);
 
         setHeightFull();
 
@@ -106,7 +108,7 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
     }
 
     @Override
-    protected SortField<?>[] initialSort() {
-        return new SortField[]{SERIES.NAME.desc()};
+    protected List<OrderField<?>> initialSort() {
+        return List.of(SERIES.NAME.desc());
     }
 }

@@ -1,6 +1,6 @@
 package ch.jtaf.ui.view;
 
-import ch.jtaf.service.UserService;
+import ch.jtaf.domain.UserService;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;

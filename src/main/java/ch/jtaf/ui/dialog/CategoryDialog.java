@@ -2,8 +2,8 @@ package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.CategoryEventRecord;
 import ch.jtaf.db.tables.records.CategoryRecord;
-import ch.jtaf.model.CategoryEventVO;
-import ch.jtaf.model.Gender;
+import ch.jtaf.domain.CategoryEventVO;
+import ch.jtaf.domain.Gender;
 import ch.jtaf.ui.converter.JtafStringToIntegerConverter;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.button.Button;

@@ -3,6 +3,7 @@ package ch.jtaf.ui.dialog;
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.AthleteRecord;
 import ch.jtaf.db.tables.records.ClubRecord;
+import ch.jtaf.domain.AthleteRepository;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -47,7 +48,7 @@ public class SearchAthleteDialog extends Dialog {
     private final Map<Long, ClubRecord> clubRecordMap;
     private final ConfigurableFilterDataProvider<AthleteRecord, Void, String> dataProvider;
 
-    public SearchAthleteDialog(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
+    public SearchAthleteDialog(AthleteRepository athleteRepository, DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
                                Long organizationId, Long seriesId, ComponentEventListener<AthleteSelectedEvent> athleteSelectedListener) {
 
         setDraggable(true);
@@ -121,7 +122,7 @@ public class SearchAthleteDialog extends Dialog {
         grid.addColumn(athleteRecord -> athleteRecord.getClubId() == null ? null
             : clubRecordMap.get(athleteRecord.getClubId()).getAbbreviation()).setHeader(getTranslation("Club")).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, athleteRecord -> dataProvider.refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(athleteRepository, grid, dialog, athleteRecord -> dataProvider.refreshAll(), () -> {
             var newRecord = ATHLETE.newRecord();
             newRecord.setOrganizationId(organizationId);
             return newRecord;

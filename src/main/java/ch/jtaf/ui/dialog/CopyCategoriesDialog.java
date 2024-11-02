@@ -1,7 +1,7 @@
 package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.SeriesRecord;
-import ch.jtaf.service.SeriesService;
+import ch.jtaf.domain.SeriesService;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;

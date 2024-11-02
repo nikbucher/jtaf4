@@ -1,4 +1,4 @@
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
 import ch.jtaf.db.tables.records.SecurityUserRecord;
 import com.vaadin.flow.i18n.I18NProvider;

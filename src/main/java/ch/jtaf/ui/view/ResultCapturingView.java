@@ -3,7 +3,7 @@ package ch.jtaf.ui.view;
 import ch.jtaf.configuration.security.Role;
 import ch.jtaf.db.tables.records.EventRecord;
 import ch.jtaf.db.tables.records.ResultRecord;
-import ch.jtaf.service.ResultCalculator;
+import ch.jtaf.domain.ResultCalculator;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.AbstractField;

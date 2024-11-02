@@ -2,8 +2,7 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.*;
-import ch.jtaf.service.NumberAndSheetsService;
-import ch.jtaf.service.SeriesService;
+import ch.jtaf.domain.*;
 import ch.jtaf.ui.dialog.*;
 import ch.jtaf.ui.layout.MainLayout;
 import ch.jtaf.ui.validator.NotEmptyValidator;
@@ -59,9 +58,14 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private static final String BLANK = "_blank";
 
+    private final SeriesRepository seriesRepository;
+    private final CompetitionRepository competitionRepository;
+    private final CategoryRepository categoryRepository;
+    private final AthleteRepository athleteRepository;
     private final transient NumberAndSheetsService numberAndSheetsService;
     private final TransactionTemplate transactionTemplate;
     private final Button copyCategories;
+    private final DSLContext dslContext;
 
     private SeriesRecord seriesRecord;
 
@@ -75,11 +79,16 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private Map<Long, ClubRecord> clubRecordMap;
 
-    public SeriesView(DSLContext dslContext, TransactionTemplate transactionTemplate, NumberAndSheetsService numberAndSheetsService,
-                      OrganizationProvider organizationProvider, SeriesService seriesService) {
-        super(dslContext, organizationProvider);
+    public SeriesView(SeriesRepository seriesRepository, CompetitionRepository competitionRepository, DSLContext dslContext, TransactionTemplate transactionTemplate, NumberAndSheetsService numberAndSheetsService,
+                      OrganizationProvider organizationProvider, SeriesService seriesService, CategoryRepository categoryRepository, AthleteRepository athleteRepository) {
+        super(organizationProvider);
+        this.seriesRepository = seriesRepository;
+        this.competitionRepository = competitionRepository;
+        this.dslContext = dslContext;
         this.transactionTemplate = transactionTemplate;
         this.numberAndSheetsService = numberAndSheetsService;
+        this.categoryRepository = categoryRepository;
+        this.athleteRepository = athleteRepository;
 
         var formLayout = new FormLayout();
         add(formLayout);
@@ -292,7 +301,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             return new HorizontalLayout(sheetsOrderedByAthlete, sheetsOrderedByClub, numbersOrderedByAthlete, numbersOrderedByClub);
         })).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, competitionsGrid, dialog, competitionRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(competitionRepository, competitionsGrid, dialog, competitionRecord -> refreshAll(), () -> {
             var newRecord = COMPETITION.newRecord();
             newRecord.setMedalPercentage(0);
             newRecord.setSeriesId(seriesRecord.getId());
@@ -322,7 +331,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             return new HorizontalLayout(sheet);
         })).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, categoriesGrid, dialog, categoryRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(categoryRepository, categoriesGrid, dialog, categoryRecord -> refreshAll(), () -> {
             var newRecord = CATEGORY.newRecord();
             newRecord.setSeriesId(seriesRecord.getId());
             return newRecord;
@@ -344,7 +353,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         var assign = new Button(getTranslation("Assign.Athlete"));
         assign.setId("assign-athlete");
         assign.addClickListener(event -> {
-            SearchAthleteDialog dialog = new SearchAthleteDialog(dslContext, transactionTemplate, organizationProvider,
+            SearchAthleteDialog dialog = new SearchAthleteDialog(athleteRepository, dslContext, transactionTemplate, organizationProvider,
                 organizationRecord.getId(), seriesRecord.getId(), this::onAthleteSelect);
             dialog.open();
         });

@@ -1,4 +1,4 @@
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
 import ch.jtaf.reporting.data.CompetitionRankingData;
 import ch.jtaf.reporting.data.EventsRankingData;

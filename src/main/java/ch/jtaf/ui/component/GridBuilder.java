@@ -2,6 +2,7 @@ package ch.jtaf.ui.component;
 
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.dialog.EditDialog;
+import ch.martinelli.oss.jooqspring.JooqRepository;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.ColumnTextAlign;
@@ -9,10 +10,8 @@ import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import org.jooq.DSLContext;
 import org.jooq.UpdatableRecord;
 import org.jooq.exception.DataAccessException;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -22,18 +21,16 @@ public class GridBuilder {
     private GridBuilder() {
     }
 
-    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(DSLContext dslContext,
-                                                                                             TransactionTemplate transactionTemplate,
+    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(JooqRepository<?, R, ?> jooqRepository,
                                                                                              Grid<R> grid,
                                                                                              EditDialog<R> dialog,
                                                                                              Consumer<R> afterSave,
                                                                                              Supplier<R> onNewRecord,
                                                                                              Runnable afterDelete) {
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, afterSave, onNewRecord, null, null, afterDelete);
+        addActionColumnAndSetSelectionListener(jooqRepository, grid, dialog, afterSave, onNewRecord, null, null, afterDelete);
     }
 
-    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(DSLContext dslContext,
-                                                                                             TransactionTemplate transactionTemplate,
+    public static <R extends UpdatableRecord<R>> void addActionColumnAndSetSelectionListener(JooqRepository<?, R, ?> jooqRepository,
                                                                                              Grid<R> grid,
                                                                                              EditDialog<R> dialog,
                                                                                              Consumer<R> afterSave,
@@ -49,24 +46,20 @@ public class GridBuilder {
             delete.addThemeVariants(ButtonVariant.LUMO_ERROR);
             delete.addClickListener(event -> {
                 if (insteadOfDelete != null) {
-                    transactionTemplate.executeWithoutResult(transactionStatus -> insteadOfDelete.accept(updatableRecord));
+                    insteadOfDelete.accept(updatableRecord);
                 } else {
                     new ConfirmDialog(
                         "delete-confirm-dialog",
                         grid.getTranslation("Confirm"),
                         grid.getTranslation("Are.you.sure"),
-                        grid.getTranslation("Delete"), e ->
-                        transactionTemplate.executeWithoutResult(transactionStatus -> {
-                            try {
-                                dslContext.attach(updatableRecord);
-                                updatableRecord.delete();
-
-                                afterDelete.run();
-                            } catch (DataAccessException ex) {
-                                Notification.show(ex.getMessage());
-                            }
-                        }),
-                        grid.getTranslation("Cancel"), e -> {
+                        grid.getTranslation("Delete"), e -> {
+                        try {
+                            jooqRepository.delete(updatableRecord);
+                            afterDelete.run();
+                        } catch (DataAccessException ex) {
+                            Notification.show(ex.getMessage());
+                        }
+                    }, grid.getTranslation("Cancel"), e -> {
                     }).open();
                 }
             });

@@ -1,4 +1,4 @@
 @NonNullApi
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
 import org.springframework.lang.NonNullApi;
