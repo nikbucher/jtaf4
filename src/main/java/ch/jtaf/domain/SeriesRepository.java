@@ -1,20 +1,23 @@
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
+import ch.jtaf.db.tables.Series;
+import ch.jtaf.db.tables.records.SeriesRecord;
+import ch.martinelli.oss.jooqspring.JooqRepository;
 import org.jooq.DSLContext;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static ch.jtaf.db.tables.Category.CATEGORY;
 import static ch.jtaf.db.tables.CategoryEvent.CATEGORY_EVENT;
 import static ch.jtaf.db.tables.Series.SERIES;
 
-@Service
-public class SeriesService {
+@Repository
+public class SeriesRepository extends JooqRepository<Series, SeriesRecord, Long> {
 
-    private final DSLContext dslContext;
-
-    public SeriesService(DSLContext dslContext) {
-        this.dslContext = dslContext;
+    public SeriesRepository(DSLContext dslContext) {
+        super(dslContext, SERIES);
     }
 
     @Transactional
@@ -53,5 +56,15 @@ public class SeriesService {
         dslContext.deleteFrom(SERIES)
             .where(SERIES.ID.eq(seriesId))
             .execute();
+    }
+
+    public List<SeriesRecord> findByOrganizationIdAndSeriesId(long organizationId, long seriesId, int offset, int limit) {
+        return dslContext
+            .selectFrom(SERIES)
+            .where(SERIES.ORGANIZATION_ID.eq(organizationId))
+            .and(SERIES.ID.ne(seriesId))
+            .orderBy(SERIES.NAME)
+            .offset(offset).limit(limit)
+            .fetch();
     }
 }

@@ -2,14 +2,18 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.ui.component.JooqDataProviderProducer;
+import ch.martinelli.oss.jooqspring.JooqRepository;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.data.provider.ConfigurableFilterDataProvider;
-import org.jooq.Record;
-import org.jooq.*;
+import org.jooq.Condition;
+import org.jooq.OrderField;
+import org.jooq.Table;
+import org.jooq.UpdatableRecord;
 
 import java.io.Serial;
+import java.util.List;
 
-public abstract class ProtectedGridView<R extends Record> extends ProtectedView {
+public abstract class ProtectedGridView<R extends UpdatableRecord<R>> extends ProtectedView {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -17,13 +21,13 @@ public abstract class ProtectedGridView<R extends Record> extends ProtectedView 
     final ConfigurableFilterDataProvider<R, Void, String> dataProvider;
     final Grid<R> grid;
 
-    protected ProtectedGridView(DSLContext dslContext, OrganizationProvider organizationProvider, Table<R> table) {
-        super(dslContext, organizationProvider);
+    protected ProtectedGridView(JooqRepository<?, R, ?> jooqRepository, OrganizationProvider organizationProvider, Table<R> table) {
+        super(organizationProvider);
 
         grid = new Grid<>();
         grid.setHeightFull();
 
-        dataProvider = new JooqDataProviderProducer<>(dslContext, table, this::initialCondition, this::initialSort).getDataProvider();
+        dataProvider = new JooqDataProviderProducer<>(jooqRepository, table, this::initialCondition, this::initialSort).getDataProvider();
 
         grid.setItems(dataProvider);
 
@@ -32,7 +36,7 @@ public abstract class ProtectedGridView<R extends Record> extends ProtectedView 
 
     protected abstract Condition initialCondition();
 
-    protected abstract SortField<?>[] initialSort();
+    protected abstract List<OrderField<?>> initialSort();
 
     @Override
     protected void refreshAll() {

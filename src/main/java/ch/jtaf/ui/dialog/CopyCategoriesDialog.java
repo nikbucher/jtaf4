@@ -1,7 +1,7 @@
 package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.SeriesRecord;
-import ch.jtaf.service.SeriesService;
+import ch.jtaf.domain.SeriesRepository;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -11,13 +11,10 @@ import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.shared.Registration;
-import org.jooq.DSLContext;
-
-import static ch.jtaf.db.tables.Series.SERIES;
 
 public class CopyCategoriesDialog extends Dialog {
 
-    public CopyCategoriesDialog(long organizationId, long currentSeriesId, DSLContext dslContext, SeriesService seriesService) {
+    public CopyCategoriesDialog(long organizationId, long currentSeriesId, SeriesRepository seriesRepository) {
         setHeaderTitle(getTranslation("Copy.Categories"));
 
         var close = new Button(VaadinIcon.CLOSE_SMALL.create());
@@ -28,13 +25,7 @@ public class CopyCategoriesDialog extends Dialog {
         seriesSelection.setId("series-selection");
         seriesSelection.setWidth("300px");
         seriesSelection.setItemLabelGenerator(SeriesRecord::getName);
-        seriesSelection.setItems(query -> dslContext
-            .selectFrom(SERIES)
-            .where(SERIES.ORGANIZATION_ID.eq(organizationId))
-            .and(SERIES.ID.ne(currentSeriesId))
-            .orderBy(SERIES.NAME)
-            .offset(query.getOffset()).limit(query.getLimit())
-            .fetch().stream());
+        seriesSelection.setItems(query -> seriesRepository.findByOrganizationIdAndSeriesId(organizationId, currentSeriesId, query.getOffset(), query.getLimit()).stream());
 
         add(seriesSelection);
 
@@ -42,7 +33,7 @@ public class CopyCategoriesDialog extends Dialog {
         copy.setId("copy-categories-copy");
         copy.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         copy.addClickListener(event -> {
-            seriesService.copyCategories(seriesSelection.getValue().getId(), currentSeriesId);
+            seriesRepository.copyCategories(seriesSelection.getValue().getId(), currentSeriesId);
             Notification.show(getTranslation("Categories.copied"), 6000, Notification.Position.TOP_END);
 
             fireEvent(new AfterCopyEvent(this));

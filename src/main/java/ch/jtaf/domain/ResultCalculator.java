@@ -1,7 +1,6 @@
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
 import ch.jtaf.db.tables.records.EventRecord;
-import ch.jtaf.model.EventType;
 import org.springframework.stereotype.Service;
 
 @Service

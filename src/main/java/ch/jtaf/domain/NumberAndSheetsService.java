@@ -1,4 +1,4 @@
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
 import ch.jtaf.reporting.data.NumbersAndSheetsAthlete;
 import ch.jtaf.reporting.data.NumbersAndSheetsCompetition;

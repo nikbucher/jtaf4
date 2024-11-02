@@ -3,6 +3,8 @@ package ch.jtaf.ui.dialog;
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.AthleteRecord;
 import ch.jtaf.db.tables.records.ClubRecord;
+import ch.jtaf.domain.AthleteRepository;
+import ch.jtaf.domain.ClubRepository;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -18,18 +20,13 @@ import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ch.jtaf.db.tables.Athlete.ATHLETE;
-import static ch.jtaf.db.tables.Category.CATEGORY;
-import static ch.jtaf.db.tables.CategoryAthlete.CATEGORY_ATHLETE;
-import static ch.jtaf.db.tables.Club.CLUB;
 import static ch.jtaf.ui.component.GridBuilder.addActionColumnAndSetSelectionListener;
 import static org.jooq.impl.DSL.lower;
 
@@ -47,7 +44,7 @@ public class SearchAthleteDialog extends Dialog {
     private final Map<Long, ClubRecord> clubRecordMap;
     private final ConfigurableFilterDataProvider<AthleteRecord, Void, String> dataProvider;
 
-    public SearchAthleteDialog(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
+    public SearchAthleteDialog(AthleteRepository athleteRepository, ClubRepository clubRepository, OrganizationProvider organizationProvider,
                                Long organizationId, Long seriesId, ComponentEventListener<AthleteSelectedEvent> athleteSelectedListener) {
 
         setDraggable(true);
@@ -66,46 +63,20 @@ public class SearchAthleteDialog extends Dialog {
 
         getHeader().add(toggle, close);
 
-        var dialog = new AthleteDialog(getTranslation("Athlete"), dslContext, transactionTemplate, organizationProvider);
+        var dialog = new AthleteDialog(getTranslation("Athlete"), athleteRepository, clubRepository, organizationProvider);
 
         var filter = new TextField(getTranslation("Filter"));
         filter.setAutoselect(true);
         filter.setAutofocus(true);
         filter.setValueChangeMode(ValueChangeMode.EAGER);
 
-        var clubs = dslContext.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationId)).fetch();
+        var clubs = clubRepository.findByOrganizationId(organizationId);
         clubRecordMap = clubs.stream().collect(Collectors.toMap(ClubRecord::getId, clubRecord -> clubRecord));
 
         CallbackDataProvider<AthleteRecord, String> callbackDataProvider = DataProvider.fromFilteringCallbacks(
-            query -> dslContext
-                .select(ATHLETE.fields())
-                .from(ATHLETE)
-                .where(ATHLETE.ORGANIZATION_ID.eq(organizationId))
-                .and(ATHLETE.ID.notIn(dslContext
-                    .select(CATEGORY_ATHLETE.ATHLETE_ID)
-                    .from(CATEGORY_ATHLETE)
-                    .join(CATEGORY).on(CATEGORY.ID.eq(CATEGORY_ATHLETE.CATEGORY_ID))
-                    .where(CATEGORY.SERIES_ID.eq(seriesId))
-                ))
-                .and(createCondition(query))
-                .orderBy(ATHLETE.LAST_NAME, ATHLETE.FIRST_NAME)
-                .offset(query.getOffset()).limit(query.getLimit())
-                .fetchStreamInto(ATHLETE),
-            query -> {
-                var count = dslContext
-                    .selectCount()
-                    .from(ATHLETE)
-                    .where(ATHLETE.ORGANIZATION_ID.eq(organizationId))
-                    .and(ATHLETE.ID.notIn(dslContext
-                        .select(CATEGORY_ATHLETE.ATHLETE_ID)
-                        .from(CATEGORY_ATHLETE)
-                        .join(CATEGORY).on(CATEGORY.ID.eq(CATEGORY_ATHLETE.CATEGORY_ID))
-                        .where(CATEGORY.SERIES_ID.eq(seriesId))
-                    ))
-                    .and(createCondition(query))
-                    .fetchOneInto(Integer.class);
-                return count != null ? count : 0;
-            });
+            query -> athleteRepository.findByOrganizationIdAndSeriesId(organizationId, seriesId, createCondition(query), query.getOffset(), query.getLimit()).stream(),
+            query -> athleteRepository.countByOrganizationIdAndSeriesId(organizationId, seriesId, createCondition(query))
+        );
 
         dataProvider = callbackDataProvider.withConfigurableFilter();
 
@@ -121,7 +92,7 @@ public class SearchAthleteDialog extends Dialog {
         grid.addColumn(athleteRecord -> athleteRecord.getClubId() == null ? null
             : clubRecordMap.get(athleteRecord.getClubId()).getAbbreviation()).setHeader(getTranslation("Club")).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, athleteRecord -> dataProvider.refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(athleteRepository, grid, dialog, athleteRecord -> dataProvider.refreshAll(), () -> {
             var newRecord = ATHLETE.newRecord();
             newRecord.setOrganizationId(organizationId);
             return newRecord;

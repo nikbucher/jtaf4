@@ -1,4 +1,4 @@
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

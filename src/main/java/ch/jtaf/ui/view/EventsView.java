@@ -2,15 +2,15 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.EventRecord;
+import ch.jtaf.domain.EventRepository;
 import ch.jtaf.ui.dialog.EventDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.SortField;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.jooq.OrderField;
 
 import java.io.Serial;
+import java.util.List;
 
 import static ch.jtaf.db.tables.Event.EVENT;
 import static ch.jtaf.ui.component.GridBuilder.addActionColumnAndSetSelectionListener;
@@ -21,12 +21,12 @@ public class EventsView extends ProtectedGridView<EventRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public EventsView(DSLContext dslContext, OrganizationProvider organizationProvider, TransactionTemplate transactionTemplate) {
-        super(dslContext, organizationProvider, EVENT);
+    public EventsView(EventRepository eventRepository, OrganizationProvider organizationProvider) {
+        super(eventRepository, organizationProvider, EVENT);
 
         setHeightFull();
 
-        var dialog = new EventDialog(getTranslation("Event"), dslContext, transactionTemplate);
+        var dialog = new EventDialog(getTranslation("Event"), eventRepository);
 
         grid.setId("events-grid");
 
@@ -38,7 +38,7 @@ public class EventsView extends ProtectedGridView<EventRecord> {
         grid.addColumn(EventRecord::getB).setHeader("B").setAutoWidth(true);
         grid.addColumn(EventRecord::getC).setHeader("C").setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, eventRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(eventRepository, grid, dialog, eventRecord -> refreshAll(), () -> {
             var newRecord = EVENT.newRecord();
             newRecord.setOrganizationId(organizationRecord.getId());
             return newRecord;
@@ -58,7 +58,7 @@ public class EventsView extends ProtectedGridView<EventRecord> {
     }
 
     @Override
-    protected SortField<?>[] initialSort() {
-        return new SortField[]{EVENT.GENDER.asc(), EVENT.ABBREVIATION.asc()};
+    protected List<OrderField<?>> initialSort() {
+        return List.of(EVENT.GENDER.asc(), EVENT.ABBREVIATION.asc());
     }
 }

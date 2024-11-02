@@ -1,7 +1,7 @@
 package ch.jtaf.ui.view;
 
-import ch.jtaf.service.UserAlreadyExistException;
-import ch.jtaf.service.UserService;
+import ch.jtaf.domain.UserAlreadyExistException;
+import ch.jtaf.domain.UserService;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;

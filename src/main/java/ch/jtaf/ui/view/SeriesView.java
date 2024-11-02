@@ -2,8 +2,7 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.*;
-import ch.jtaf.service.NumberAndSheetsService;
-import ch.jtaf.service.SeriesService;
+import ch.jtaf.domain.*;
 import ch.jtaf.ui.dialog.*;
 import ch.jtaf.ui.layout.MainLayout;
 import ch.jtaf.ui.validator.NotEmptyValidator;
@@ -32,9 +31,7 @@ import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.OptionalParameter;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
-import org.jooq.DSLContext;
 import org.jooq.UpdatableRecord;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -45,7 +42,6 @@ import java.util.stream.Collectors;
 
 import static ch.jtaf.db.tables.Athlete.ATHLETE;
 import static ch.jtaf.db.tables.Category.CATEGORY;
-import static ch.jtaf.db.tables.CategoryAthlete.CATEGORY_ATHLETE;
 import static ch.jtaf.db.tables.Club.CLUB;
 import static ch.jtaf.db.tables.Competition.COMPETITION;
 import static ch.jtaf.db.tables.Series.SERIES;
@@ -59,8 +55,15 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private static final String BLANK = "_blank";
 
+    private final CompetitionRepository competitionRepository;
+    private final CategoryRepository categoryRepository;
+    private final AthleteRepository athleteRepository;
+    private final CategoryEventRepository categoryEventRepository;
+    private final ClubRepository clubRepository;
+    private final EventRepository eventRepository;
+    private final SeriesRepository seriesRepository;
     private final transient NumberAndSheetsService numberAndSheetsService;
-    private final TransactionTemplate transactionTemplate;
+
     private final Button copyCategories;
 
     private SeriesRecord seriesRecord;
@@ -75,11 +78,19 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private Map<Long, ClubRecord> clubRecordMap;
 
-    public SeriesView(DSLContext dslContext, TransactionTemplate transactionTemplate, NumberAndSheetsService numberAndSheetsService,
-                      OrganizationProvider organizationProvider, SeriesService seriesService) {
-        super(dslContext, organizationProvider);
-        this.transactionTemplate = transactionTemplate;
+    public SeriesView(CompetitionRepository competitionRepository, NumberAndSheetsService numberAndSheetsService,
+                      OrganizationProvider organizationProvider,  CategoryRepository categoryRepository,
+                      CategoryEventRepository categoryEventRepository, AthleteRepository athleteRepository, ClubRepository clubRepository,
+                      EventRepository eventRepository, SeriesRepository seriesRepository) {
+        super(organizationProvider);
+        this.competitionRepository = competitionRepository;
         this.numberAndSheetsService = numberAndSheetsService;
+        this.categoryRepository = categoryRepository;
+        this.categoryEventRepository = categoryEventRepository;
+        this.athleteRepository = athleteRepository;
+        this.clubRepository = clubRepository;
+        this.eventRepository = eventRepository;
+        this.seriesRepository = seriesRepository;
 
         var formLayout = new FormLayout();
         add(formLayout);
@@ -99,18 +110,17 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
         upload.setDropLabel(new Span(getTranslation("Logo.drop.here")));
 
-        upload.addSucceededListener(event ->
-            transactionTemplate.executeWithoutResult(transactionStatus -> {
-                try {
-                    var fileName = event.getFileName();
-                    var inputStream = buffer.getInputStream(fileName);
-                    binder.getBean().setLogo(inputStream.readAllBytes());
-                    dslContext.attach(binder.getBean());
-                    binder.getBean().store();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }));
+        upload.addSucceededListener(event -> {
+            try {
+                var fileName = event.getFileName();
+                var inputStream = buffer.getInputStream(fileName);
+                SeriesRecord seriesRecord = binder.getBean();
+                seriesRecord.setLogo(inputStream.readAllBytes());
+                seriesRepository.save(seriesRecord);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
         formLayout.add(upload);
 
         var checkboxes = new HorizontalLayout();
@@ -140,14 +150,12 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         var save = new Button(getTranslation("Save"));
         save.setId("save-series");
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        save.addClickListener(event ->
-            transactionTemplate.executeWithoutResult(transactionStatus -> {
-                dslContext.attach(binder.getBean());
-                binder.getBean().store();
+        save.addClickListener(event -> {
+            SeriesRecord seriesRecord = binder.getBean();
+            seriesRepository.save(seriesRecord);
 
-                Notification.show(getTranslation("Series.saved"), 6000, Notification.Position.TOP_END);
-            })
-        );
+            Notification.show(getTranslation("Series.saved"), 6000, Notification.Position.TOP_END);
+        });
         buttons.add(save);
 
         copyCategories = new Button(getTranslation("Copy.Categories"));
@@ -155,7 +163,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         copyCategories.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         copyCategories.addClickListener(event -> {
             if (seriesRecord != null) {
-                var dialog = new CopyCategoriesDialog(organizationProvider.getOrganization().getId(), seriesRecord.getId(), dslContext, seriesService);
+                var dialog = new CopyCategoriesDialog(organizationProvider.getOrganization().getId(), seriesRecord.getId(), seriesRepository);
                 dialog.addAfterCopyListener(e -> refreshAll());
                 dialog.open();
             }
@@ -199,23 +207,16 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     @Override
     protected void refreshAll() {
-        var competitionRecords = dslContext.selectFrom(COMPETITION).where(COMPETITION.SERIES_ID.eq(seriesRecord.getId()))
-            .orderBy(COMPETITION.COMPETITION_DATE).fetch();
+        var competitionRecords = competitionRepository.findBySeriesId(seriesRecord.getId());
         competitionsGrid.setItems(competitionRecords);
 
-        var categoryRecords = dslContext.selectFrom(CATEGORY).where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))
-            .orderBy(CATEGORY.ABBREVIATION).fetch();
+        var categoryRecords = categoryRepository.findBySeriesId(seriesRecord.getId());
         categoriesGrid.setItems(categoryRecords);
 
-        var clubs = dslContext.selectFrom(CLUB).where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId())).fetch();
+        var clubs = clubRepository.findByOrganizationId(organizationProvider.getOrganization().getId());
         clubRecordMap = clubs.stream().collect(Collectors.toMap(ClubRecord::getId, clubRecord -> clubRecord));
 
-        var athleteRecords = dslContext
-            .select(CATEGORY_ATHLETE.athlete().fields())
-            .from(CATEGORY_ATHLETE)
-            .where(CATEGORY_ATHLETE.category().SERIES_ID.eq(seriesRecord.getId()))
-            .orderBy(CATEGORY_ATHLETE.category().ABBREVIATION, CATEGORY_ATHLETE.athlete().LAST_NAME, CATEGORY_ATHLETE.athlete().FIRST_NAME)
-            .fetchInto(ATHLETE);
+        var athleteRecords = athleteRepository.findBySeriesId(seriesRecord.getId());
         athletesGrid.setItems(athleteRecords);
     }
 
@@ -227,7 +228,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             seriesRecord = SERIES.newRecord();
             seriesRecord.setOrganizationId(organizationRecord.getId());
         } else {
-            seriesRecord = dslContext.selectFrom(SERIES).where(SERIES.ID.eq(seriesId)).fetchOne();
+            seriesRecord = seriesRepository.findById(seriesId).orElse(null);
         }
         binder.setBean(seriesRecord);
 
@@ -235,7 +236,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             // Series must be saved first
             copyCategories.setVisible(false);
         } else {
-            if (dslContext.fetchCount(CATEGORY, CATEGORY.SERIES_ID.eq(seriesId)) > 0) {
+            if (categoryRepository.count(CATEGORY.SERIES_ID.eq(seriesId)) > 0) {
                 // Copy is only possible if no categories are added
                 copyCategories.setVisible(false);
             }
@@ -248,7 +249,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     }
 
     private void createCompetitionsSection() {
-        var dialog = new CompetitionDialog(getTranslation("Category"), dslContext, transactionTemplate);
+        var dialog = new CompetitionDialog(getTranslation("Category"), competitionRepository);
 
         competitionsGrid = new Grid<>();
         competitionsGrid.setId("competitions-grid");
@@ -292,7 +293,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             return new HorizontalLayout(sheetsOrderedByAthlete, sheetsOrderedByClub, numbersOrderedByAthlete, numbersOrderedByClub);
         })).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, competitionsGrid, dialog, competitionRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(competitionRepository, competitionsGrid, dialog, competitionRecord -> refreshAll(), () -> {
             var newRecord = COMPETITION.newRecord();
             newRecord.setMedalPercentage(0);
             newRecord.setSeriesId(seriesRecord.getId());
@@ -301,7 +302,8 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     }
 
     private void createCategoriesSection() {
-        var dialog = new CategoryDialog(getTranslation("Category"), dslContext, transactionTemplate, organizationProvider.getOrganization().getId());
+        var dialog = new CategoryDialog(getTranslation("Category"), categoryRepository, categoryEventRepository, eventRepository,
+            organizationProvider.getOrganization().getId());
 
         categoriesGrid = new Grid<>();
         categoriesGrid.setId("categories-grid");
@@ -322,7 +324,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             return new HorizontalLayout(sheet);
         })).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, categoriesGrid, dialog, categoryRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(categoryRepository, categoriesGrid, dialog, categoryRecord -> refreshAll(), () -> {
             var newRecord = CATEGORY.newRecord();
             newRecord.setSeriesId(seriesRecord.getId());
             return newRecord;
@@ -344,7 +346,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         var assign = new Button(getTranslation("Assign.Athlete"));
         assign.setId("assign-athlete");
         assign.addClickListener(event -> {
-            SearchAthleteDialog dialog = new SearchAthleteDialog(dslContext, transactionTemplate, organizationProvider,
+            SearchAthleteDialog dialog = new SearchAthleteDialog(athleteRepository, clubRepository, organizationProvider,
                 organizationRecord.getId(), seriesRecord.getId(), this::onAthleteSelect);
             dialog.open();
         });
@@ -368,36 +370,15 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     }
 
     private void onAthleteSelect(SearchAthleteDialog.AthleteSelectedEvent athleteSelectedEvent) {
-        transactionTemplate.executeWithoutResult(transactionStatus -> {
-            var athleteRecord = athleteSelectedEvent.getAthleteRecord();
-
-            var categoryId = dslContext
-                .select(CATEGORY.ID)
-                .from(CATEGORY)
-                .where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))
-                .and(CATEGORY.GENDER.eq(athleteRecord.getGender()))
-                .and(CATEGORY.YEAR_FROM.le(athleteRecord.getYearOfBirth()))
-                .and(CATEGORY.YEAR_TO.ge(athleteRecord.getYearOfBirth()))
-                .fetchOneInto(Long.class);
-
-            var categoryAthleteRecord = CATEGORY_ATHLETE.newRecord();
-            categoryAthleteRecord.setAthleteId(athleteRecord.getId());
-            categoryAthleteRecord.setCategoryId(categoryId);
-            categoryAthleteRecord.attach(dslContext.configuration());
-            categoryAthleteRecord.store();
-        });
+        var athleteRecord = athleteSelectedEvent.getAthleteRecord();
+        categoryRepository.createCategoryAthlete(athleteRecord, seriesRecord.getId());
 
         refreshAll();
     }
 
     private void removeAthleteFromSeries(UpdatableRecord<?> updatableRecord) {
         var athleteRecord = (AthleteRecord) updatableRecord;
-        dslContext
-            .deleteFrom(CATEGORY_ATHLETE)
-            .where(CATEGORY_ATHLETE.ATHLETE_ID.eq(athleteRecord.getId()))
-            .and(CATEGORY_ATHLETE.CATEGORY_ID.in(dslContext.select(CATEGORY.ID).from(CATEGORY).where(CATEGORY.SERIES_ID.eq(seriesRecord.getId()))))
-            .execute();
-
+        categoryRepository.deleteCategoryAthlete(athleteRecord, seriesRecord.getId());
         refreshAll();
     }
 

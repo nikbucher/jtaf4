@@ -2,15 +2,15 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.ClubRecord;
+import ch.jtaf.domain.ClubRepository;
 import ch.jtaf.ui.dialog.ClubDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.SortField;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.jooq.OrderField;
 
 import java.io.Serial;
+import java.util.List;
 
 import static ch.jtaf.db.tables.Club.CLUB;
 import static ch.jtaf.ui.component.GridBuilder.addActionColumnAndSetSelectionListener;
@@ -21,19 +21,19 @@ public class ClubsView extends ProtectedGridView<ClubRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public ClubsView(DSLContext dslContext, OrganizationProvider organizationProvider, TransactionTemplate transactionTemplate) {
-        super(dslContext, organizationProvider, CLUB);
+    public ClubsView(ClubRepository clubRepository, OrganizationProvider organizationProvider) {
+        super(clubRepository, organizationProvider, CLUB);
 
         setHeightFull();
 
-        var dialog = new ClubDialog(getTranslation("Clubs"), dslContext, transactionTemplate);
+        var dialog = new ClubDialog(getTranslation("Clubs"), clubRepository);
 
         grid.setId("clubs-grid");
 
         grid.addColumn(ClubRecord::getAbbreviation).setHeader(getTranslation("Abbreviation")).setSortable(true).setAutoWidth(true).setKey(CLUB.ABBREVIATION.getName());
         grid.addColumn(ClubRecord::getName).setHeader(getTranslation("Name")).setSortable(true).setAutoWidth(true).setKey(CLUB.NAME.getName());
 
-        addActionColumnAndSetSelectionListener(dslContext, transactionTemplate, grid, dialog, clubRecord -> refreshAll(),
+        addActionColumnAndSetSelectionListener(clubRepository, grid, dialog, clubRecord -> refreshAll(),
             () -> {
                 ClubRecord newRecord = CLUB.newRecord();
                 newRecord.setOrganizationId(organizationRecord.getId());
@@ -54,7 +54,7 @@ public class ClubsView extends ProtectedGridView<ClubRecord> {
     }
 
     @Override
-    protected SortField<?>[] initialSort() {
-        return new SortField[]{CLUB.ABBREVIATION.asc()};
+    protected List<OrderField<?>> initialSort() {
+        return List.of(CLUB.ABBREVIATION.asc());
     }
 }

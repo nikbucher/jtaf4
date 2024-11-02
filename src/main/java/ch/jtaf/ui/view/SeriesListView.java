@@ -2,7 +2,8 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.SeriesRecord;
-import ch.jtaf.service.SeriesService;
+import ch.jtaf.domain.CategoryRepository;
+import ch.jtaf.domain.SeriesRepository;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import ch.jtaf.ui.util.LogoUtil;
@@ -15,14 +16,12 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.SortField;
+import org.jooq.OrderField;
 import org.jooq.exception.DataAccessException;
-import org.jooq.impl.DSL;
 
 import java.io.Serial;
+import java.util.List;
 
-import static ch.jtaf.db.tables.CategoryAthlete.CATEGORY_ATHLETE;
 import static ch.jtaf.db.tables.Series.SERIES;
 
 @Route(layout = MainLayout.class)
@@ -30,9 +29,10 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
+    private final CategoryRepository categoryRepository;
 
-    public SeriesListView(DSLContext dslContext, OrganizationProvider organizationProvider, SeriesService seriesService) {
-        super(dslContext, organizationProvider, SERIES);
+    public SeriesListView(SeriesRepository seriesRepository, OrganizationProvider organizationProvider, CategoryRepository categoryRepository) {
+        super(seriesRepository, organizationProvider, SERIES);
 
         setHeightFull();
 
@@ -45,12 +45,7 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
         grid.addComponentColumn(LogoUtil::resizeLogo).setHeader(getTranslation("Logo")).setAutoWidth(true);
         grid.addColumn(SeriesRecord::getName).setHeader(getTranslation("Name")).setSortable(true).setAutoWidth(true).setKey(SERIES.NAME.getName());
 
-        grid.addColumn(seriesRecord ->
-                dslContext
-                    .select(DSL.count(CATEGORY_ATHLETE.ATHLETE_ID)).from(CATEGORY_ATHLETE)
-                    .where(CATEGORY_ATHLETE.category().SERIES_ID.eq(seriesRecord.getId()))
-                    .fetchOneInto(Integer.class)
-            )
+        grid.addColumn(seriesRecord -> categoryRepository.countAthletesBySeriesId(seriesRecord.getId()))
             .setHeader(getTranslation("Number.of.Athletes")).setAutoWidth(true);
 
         grid.addComponentColumn(seriesRecord -> {
@@ -76,7 +71,7 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
                     getTranslation("Are.you.sure"),
                     getTranslation("Delete"), e -> {
                     try {
-                        seriesService.deleteSeries(seriesRecord.getId());
+                        seriesRepository.deleteSeries(seriesRecord.getId());
                         refreshAll();
                     } catch (DataAccessException ex) {
                         Notification.show(ex.getMessage());
@@ -93,6 +88,7 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
         grid.addItemClickListener(event -> UI.getCurrent().navigate(SeriesView.class, event.getItem().getId()));
 
         add(grid);
+        this.categoryRepository = categoryRepository;
     }
 
     @Override
@@ -106,7 +102,7 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
     }
 
     @Override
-    protected SortField<?>[] initialSort() {
-        return new SortField[]{SERIES.NAME.desc()};
+    protected List<OrderField<?>> initialSort() {
+        return List.of(SERIES.NAME.desc());
     }
 }

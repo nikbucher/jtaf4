@@ -4,7 +4,7 @@ import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.configuration.security.Role;
 import ch.jtaf.configuration.security.SecurityContext;
 import ch.jtaf.db.tables.records.OrganizationRecord;
-import ch.jtaf.db.tables.records.OrganizationUserRecord;
+import ch.jtaf.domain.OrganizationRepository;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.dialog.OrganizationDialog;
 import ch.jtaf.ui.layout.MainLayout;
@@ -19,15 +19,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
-import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 
 import static ch.jtaf.db.tables.Organization.ORGANIZATION;
-import static ch.jtaf.db.tables.OrganizationUser.ORGANIZATION_USER;
-import static ch.jtaf.db.tables.SecurityUser.SECURITY_USER;
 
 @RolesAllowed({Role.USER, Role.ADMIN})
 @Route(layout = MainLayout.class)
@@ -36,21 +32,19 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final transient DSLContext dslContext;
-    private final TransactionTemplate transactionTemplate;
+    private final OrganizationRepository organizationRepository;
     private final transient SecurityContext securityContext;
 
     private final Grid<OrganizationRecord> grid;
 
-    public OrganizationsView(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
+    public OrganizationsView(OrganizationRepository organizationRepository, OrganizationProvider organizationProvider,
                              SecurityContext securityContext) {
-        this.dslContext = dslContext;
-        this.transactionTemplate = transactionTemplate;
+        this.organizationRepository = organizationRepository;
         this.securityContext = securityContext;
 
         setHeightFull();
 
-        var dialog = new OrganizationDialog(getTranslation("Organization"), dslContext, transactionTemplate);
+        var dialog = new OrganizationDialog(getTranslation("Organization"), organizationRepository);
 
         var add = new Button(getTranslation("Add"));
         add.setId("add-button");
@@ -85,18 +79,15 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
                     "delete-organization-confirm-dialog",
                     getTranslation("Confirm"),
                     getTranslation("Are.you.sure"),
-                    getTranslation("Delete"), e -> transactionTemplate.executeWithoutResult(transactionStatus -> {
+                    getTranslation("Delete"), e -> {
                     try {
-                        dslContext.deleteFrom(ORGANIZATION_USER).where(ORGANIZATION_USER.ORGANIZATION_ID.eq(organizationRecord.getId())).execute();
-
-                        dslContext.attach(organizationRecord);
-                        organizationRecord.delete();
+                        organizationRepository.deleteWithUsers(organizationRecord);
 
                         loadData(null);
                     } catch (DataAccessException ex) {
                         Notification.show(ex.getMessage());
                     }
-                }),
+                },
                     getTranslation("Cancel"), e -> {
                 }).open());
 
@@ -114,25 +105,10 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
 
     private void loadData(OrganizationRecord organizationRecord) {
         if (organizationRecord != null) {
-            transactionTemplate.executeWithoutResult(transactionStatus ->
-                dslContext.selectFrom(SECURITY_USER)
-                    .where(SECURITY_USER.EMAIL.eq(securityContext.getUsername()))
-                    .fetchOptional()
-                    .ifPresent(user -> {
-                        var organizationUser = new OrganizationUserRecord();
-                        organizationUser.setOrganizationId(organizationRecord.getId());
-                        organizationUser.setUserId(user.getId());
-                        dslContext.attach(organizationUser);
-                        organizationUser.store();
-                    }));
+            organizationRepository.createOrganizationUser(securityContext.getUsername(), organizationRecord);
         }
 
-        var organizations = dslContext
-            .select(ORGANIZATION_USER.organization().fields())
-            .from(ORGANIZATION_USER)
-            .where(ORGANIZATION_USER.securityUser().EMAIL.eq(securityContext.getUsername()))
-            .fetch().into(ORGANIZATION);
-
+        var organizations = organizationRepository.findByUsername(securityContext.getUsername());
         grid.setItems(organizations);
     }
 

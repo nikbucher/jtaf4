@@ -1,4 +1,4 @@
-package ch.jtaf.service;
+package ch.jtaf.domain;
 
 import org.jooq.DSLContext;
 import org.junit.jupiter.api.Test;

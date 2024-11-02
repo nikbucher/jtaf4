@@ -1,8 +1,8 @@
 package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.SecurityContext;
-import ch.jtaf.service.CompetitionRankingService;
-import ch.jtaf.service.SeriesRankingService;
+import ch.jtaf.domain.CompetitionRankingService;
+import ch.jtaf.domain.SeriesRankingService;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;

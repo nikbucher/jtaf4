@@ -1,14 +1,14 @@
-package ch.jtaf.model;
+package ch.jtaf.domain;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public enum EventType {
+public enum Gender {
 
-    JUMP_THROW, RUN, RUN_LONG;
+    M, F;
 
     public static List<String> valuesAsStrings() {
-        List<String> valuesAsStrings = new ArrayList<>();
+        var valuesAsStrings = new ArrayList<String>();
         for (var value : values()) {
             valuesAsStrings.add(value.name());
         }

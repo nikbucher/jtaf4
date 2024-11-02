@@ -8,7 +8,6 @@ import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import jakarta.annotation.security.RolesAllowed;
-import org.jooq.DSLContext;
 
 import java.io.Serial;
 
@@ -18,13 +17,11 @@ public abstract class ProtectedView extends VerticalLayout implements BeforeEnte
     @Serial
     private static final long serialVersionUID = 1L;
 
-    final transient DSLContext dslContext;
     final transient OrganizationProvider organizationProvider;
 
     OrganizationRecord organizationRecord;
 
-    ProtectedView(DSLContext dslContext, OrganizationProvider organizationProvider) {
-        this.dslContext = dslContext;
+    ProtectedView(OrganizationProvider organizationProvider) {
         this.organizationProvider = organizationProvider;
 
         setHeightFull();
