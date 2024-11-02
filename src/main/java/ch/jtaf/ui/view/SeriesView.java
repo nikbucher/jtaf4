@@ -58,7 +58,6 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private static final String BLANK = "_blank";
 
-    private final SeriesRepository seriesRepository;
     private final CompetitionRepository competitionRepository;
     private final CategoryRepository categoryRepository;
     private final AthleteRepository athleteRepository;
@@ -66,6 +65,8 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     private final TransactionTemplate transactionTemplate;
     private final Button copyCategories;
     private final DSLContext dslContext;
+    private final CategoryEventRepository categoryEventRepository;
+    private final ClubRepository clubRepository;
 
     private SeriesRecord seriesRecord;
 
@@ -79,16 +80,19 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private Map<Long, ClubRecord> clubRecordMap;
 
-    public SeriesView(SeriesRepository seriesRepository, CompetitionRepository competitionRepository, DSLContext dslContext, TransactionTemplate transactionTemplate, NumberAndSheetsService numberAndSheetsService,
-                      OrganizationProvider organizationProvider, SeriesService seriesService, CategoryRepository categoryRepository, AthleteRepository athleteRepository) {
+    public SeriesView(SeriesRepository seriesRepository, CompetitionRepository competitionRepository, DSLContext dslContext,
+                      TransactionTemplate transactionTemplate, NumberAndSheetsService numberAndSheetsService,
+                      OrganizationProvider organizationProvider, SeriesService seriesService, CategoryRepository categoryRepository,
+                      CategoryEventRepository categoryEventRepository, AthleteRepository athleteRepository, ClubRepository clubRepository) {
         super(organizationProvider);
-        this.seriesRepository = seriesRepository;
         this.competitionRepository = competitionRepository;
         this.dslContext = dslContext;
         this.transactionTemplate = transactionTemplate;
         this.numberAndSheetsService = numberAndSheetsService;
         this.categoryRepository = categoryRepository;
+        this.categoryEventRepository = categoryEventRepository;
         this.athleteRepository = athleteRepository;
+        this.clubRepository = clubRepository;
 
         var formLayout = new FormLayout();
         add(formLayout);
@@ -257,7 +261,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     }
 
     private void createCompetitionsSection() {
-        var dialog = new CompetitionDialog(getTranslation("Category"), dslContext, transactionTemplate);
+        var dialog = new CompetitionDialog(getTranslation("Category"), competitionRepository);
 
         competitionsGrid = new Grid<>();
         competitionsGrid.setId("competitions-grid");
@@ -310,7 +314,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     }
 
     private void createCategoriesSection() {
-        var dialog = new CategoryDialog(getTranslation("Category"), dslContext, transactionTemplate, organizationProvider.getOrganization().getId());
+        var dialog = new CategoryDialog(getTranslation("Category"), categoryRepository, categoryEventRepository, dslContext, organizationProvider.getOrganization().getId());
 
         categoriesGrid = new Grid<>();
         categoriesGrid.setId("categories-grid");
@@ -353,7 +357,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         var assign = new Button(getTranslation("Assign.Athlete"));
         assign.setId("assign-athlete");
         assign.addClickListener(event -> {
-            SearchAthleteDialog dialog = new SearchAthleteDialog(athleteRepository, dslContext, transactionTemplate, organizationProvider,
+            SearchAthleteDialog dialog = new SearchAthleteDialog(athleteRepository, clubRepository, dslContext, organizationProvider,
                 organizationRecord.getId(), seriesRecord.getId(), this::onAthleteSelect);
             dialog.open();
         });

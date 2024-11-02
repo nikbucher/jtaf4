@@ -7,9 +7,7 @@ import ch.jtaf.ui.dialog.ClubDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.List;
@@ -23,12 +21,12 @@ public class ClubsView extends ProtectedGridView<ClubRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public ClubsView(ClubRepository clubRepository, DSLContext dslContext, OrganizationProvider organizationProvider, TransactionTemplate transactionTemplate) {
+    public ClubsView(ClubRepository clubRepository, OrganizationProvider organizationProvider) {
         super(clubRepository, organizationProvider, CLUB);
 
         setHeightFull();
 
-        var dialog = new ClubDialog(getTranslation("Clubs"), dslContext, transactionTemplate);
+        var dialog = new ClubDialog(getTranslation("Clubs"), clubRepository);
 
         grid.setId("clubs-grid");
 

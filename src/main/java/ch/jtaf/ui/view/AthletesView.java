@@ -4,6 +4,7 @@ import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.AthleteRecord;
 import ch.jtaf.db.tables.records.ClubRecord;
 import ch.jtaf.domain.AthleteRepository;
+import ch.jtaf.domain.ClubRepository;
 import ch.jtaf.ui.dialog.AthleteDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.textfield.TextField;
@@ -12,7 +13,6 @@ import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.OrderField;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.HashMap;
@@ -33,13 +33,14 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
 
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
 
-    public AthletesView(DSLContext dslContext, TransactionTemplate transactionTemplate, AthleteRepository athleteRepository, OrganizationProvider organizationProvider) {
+    public AthletesView(DSLContext dslContext, AthleteRepository athleteRepository, ClubRepository clubRepository,
+                        OrganizationProvider organizationProvider) {
         super(athleteRepository, organizationProvider, ATHLETE);
         this.dslContext = dslContext;
 
         setHeightFull();
 
-        var dialog = new AthleteDialog(getTranslation("Athlete"), dslContext, transactionTemplate, organizationProvider);
+        var dialog = new AthleteDialog(getTranslation("Athlete"), athleteRepository, clubRepository, organizationProvider);
 
         var filter = new TextField(getTranslation("Filter"));
         filter.setId("filter");

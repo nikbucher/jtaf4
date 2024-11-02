@@ -4,6 +4,7 @@ import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.AthleteRecord;
 import ch.jtaf.db.tables.records.ClubRecord;
 import ch.jtaf.domain.AthleteRepository;
+import ch.jtaf.domain.ClubRepository;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -21,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.Map;
@@ -48,7 +48,7 @@ public class SearchAthleteDialog extends Dialog {
     private final Map<Long, ClubRecord> clubRecordMap;
     private final ConfigurableFilterDataProvider<AthleteRecord, Void, String> dataProvider;
 
-    public SearchAthleteDialog(AthleteRepository athleteRepository, DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
+    public SearchAthleteDialog(AthleteRepository athleteRepository, ClubRepository clubRepository, DSLContext dslContext, OrganizationProvider organizationProvider,
                                Long organizationId, Long seriesId, ComponentEventListener<AthleteSelectedEvent> athleteSelectedListener) {
 
         setDraggable(true);
@@ -67,7 +67,7 @@ public class SearchAthleteDialog extends Dialog {
 
         getHeader().add(toggle, close);
 
-        var dialog = new AthleteDialog(getTranslation("Athlete"), dslContext, transactionTemplate, organizationProvider);
+        var dialog = new AthleteDialog(getTranslation("Athlete"), athleteRepository, clubRepository, organizationProvider);
 
         var filter = new TextField(getTranslation("Filter"));
         filter.setAutoselect(true);

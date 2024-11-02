@@ -7,9 +7,7 @@ import ch.jtaf.ui.dialog.EventDialog;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.OrderField;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.List;
@@ -23,12 +21,12 @@ public class EventsView extends ProtectedGridView<EventRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public EventsView(EventRepository eventRepository, DSLContext dslContext, OrganizationProvider organizationProvider, TransactionTemplate transactionTemplate) {
+    public EventsView(EventRepository eventRepository, OrganizationProvider organizationProvider) {
         super(eventRepository, organizationProvider, EVENT);
 
         setHeightFull();
 
-        var dialog = new EventDialog(getTranslation("Event"), dslContext, transactionTemplate);
+        var dialog = new EventDialog(getTranslation("Event"), eventRepository);
 
         grid.setId("events-grid");
 

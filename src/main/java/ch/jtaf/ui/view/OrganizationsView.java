@@ -5,6 +5,7 @@ import ch.jtaf.configuration.security.Role;
 import ch.jtaf.configuration.security.SecurityContext;
 import ch.jtaf.db.tables.records.OrganizationRecord;
 import ch.jtaf.db.tables.records.OrganizationUserRecord;
+import ch.jtaf.domain.OrganizationRepository;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.dialog.OrganizationDialog;
 import ch.jtaf.ui.layout.MainLayout;
@@ -42,7 +43,7 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
 
     private final Grid<OrganizationRecord> grid;
 
-    public OrganizationsView(DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
+    public OrganizationsView(OrganizationRepository organizationRepository, DSLContext dslContext, TransactionTemplate transactionTemplate, OrganizationProvider organizationProvider,
                              SecurityContext securityContext) {
         this.dslContext = dslContext;
         this.transactionTemplate = transactionTemplate;
@@ -50,7 +51,7 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
 
         setHeightFull();
 
-        var dialog = new OrganizationDialog(getTranslation("Organization"), dslContext, transactionTemplate);
+        var dialog = new OrganizationDialog(getTranslation("Organization"), organizationRepository);
 
         var add = new Button(getTranslation("Add"));
         add.setId("add-button");
