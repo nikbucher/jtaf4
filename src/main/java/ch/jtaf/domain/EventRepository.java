@@ -51,4 +51,13 @@ public class EventRepository extends JooqRepository<Event, EventRecord, Long> {
             .and(condition)
             .fetchOptionalInto(Integer.class).orElse(0);
     }
+
+    public List<EventRecord> findByCategoryIdOrderByPosition(Long categoryId) {
+        return dslContext
+            .select(CATEGORY_EVENT.event().fields())
+            .from(CATEGORY_EVENT)
+            .where(CATEGORY_EVENT.CATEGORY_ID.eq(categoryId))
+            .orderBy(CATEGORY_EVENT.POSITION)
+            .fetchInto(EventRecord.class);
+    }
 }

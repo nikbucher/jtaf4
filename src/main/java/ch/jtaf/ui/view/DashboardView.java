@@ -2,7 +2,9 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.SecurityContext;
 import ch.jtaf.domain.CompetitionRankingService;
+import ch.jtaf.domain.CompetitionRepository;
 import ch.jtaf.domain.SeriesRankingService;
+import ch.jtaf.domain.SeriesRepository;
 import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -20,15 +22,11 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.StreamResource;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.theme.lumo.LumoUtility;
-import org.jooq.DSLContext;
-import org.jooq.impl.DSL;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serial;
 import java.time.format.DateTimeFormatter;
 
-import static ch.jtaf.db.tables.Competition.COMPETITION;
-import static ch.jtaf.db.tables.Series.SERIES;
 import static ch.jtaf.ui.util.LogoUtil.resizeLogo;
 
 @AnonymousAllowed
@@ -41,7 +39,8 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
     private static final String NAME_MIN_WIDTH = "350px";
     private static final String BUTTON_WIDTH = "220px";
 
-    public DashboardView(DSLContext dslContext, SeriesRankingService seriesRankingService, CompetitionRankingService competitionRankingService,
+    public DashboardView(SeriesRankingService seriesRankingService, CompetitionRankingService competitionRankingService,
+                         SeriesRepository seriesRepository, CompetitionRepository competitionRepository,
                          SecurityContext securityContext) {
         getClassNames().add("dashboard");
 
@@ -49,10 +48,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
         add(verticalLayout);
 
         int seriesIndex = 1;
-        var seriesRecords = dslContext
-            .selectFrom(SERIES)
-            .orderBy(DSL.field(dslContext.select(DSL.max(COMPETITION.COMPETITION_DATE)).from(COMPETITION).where(COMPETITION.SERIES_ID.eq(SERIES.ID))).desc())
-            .fetch();
+        var seriesRecords = seriesRepository.findAllOrderByCompetitionDate();
         for (var series : seriesRecords) {
             HorizontalLayout seriesLayout = new HorizontalLayout();
             seriesLayout.getClassNames().add("series-layout");
@@ -106,9 +102,7 @@ public class DashboardView extends VerticalLayout implements HasDynamicTitle {
             buttonLayout.add(clubRankingDiv);
 
             int competitionIndex = 1;
-            var competitionRecords = dslContext.selectFrom(COMPETITION)
-                .where(COMPETITION.SERIES_ID.eq(series.getId()))
-                .fetch();
+            var competitionRecords = competitionRepository.findBySeriesId(series.getId());
             for (var competition : competitionRecords) {
                 var competitionLayout = new HorizontalLayout();
                 competitionLayout.getClassNames().add("competition-layout");

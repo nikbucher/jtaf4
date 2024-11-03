@@ -62,6 +62,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     private final ClubRepository clubRepository;
     private final EventRepository eventRepository;
     private final SeriesRepository seriesRepository;
+    private final CategoryAthleteRepository categoryAthleteRepository;
     private final transient NumberAndSheetsService numberAndSheetsService;
 
     private final Button copyCategories;
@@ -79,9 +80,9 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     private Map<Long, ClubRecord> clubRecordMap;
 
     public SeriesView(CompetitionRepository competitionRepository, NumberAndSheetsService numberAndSheetsService,
-                      OrganizationProvider organizationProvider,  CategoryRepository categoryRepository,
+                      OrganizationProvider organizationProvider, CategoryRepository categoryRepository,
                       CategoryEventRepository categoryEventRepository, AthleteRepository athleteRepository, ClubRepository clubRepository,
-                      EventRepository eventRepository, SeriesRepository seriesRepository) {
+                      EventRepository eventRepository, SeriesRepository seriesRepository, CategoryAthleteRepository categoryAthleteRepository) {
         super(organizationProvider);
         this.competitionRepository = competitionRepository;
         this.numberAndSheetsService = numberAndSheetsService;
@@ -91,6 +92,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         this.clubRepository = clubRepository;
         this.eventRepository = eventRepository;
         this.seriesRepository = seriesRepository;
+        this.categoryAthleteRepository = categoryAthleteRepository;
 
         var formLayout = new FormLayout();
         add(formLayout);
@@ -371,14 +373,14 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private void onAthleteSelect(SearchAthleteDialog.AthleteSelectedEvent athleteSelectedEvent) {
         var athleteRecord = athleteSelectedEvent.getAthleteRecord();
-        categoryRepository.createCategoryAthlete(athleteRecord, seriesRecord.getId());
+        categoryAthleteRepository.createCategoryAthlete(athleteRecord, seriesRecord.getId());
 
         refreshAll();
     }
 
     private void removeAthleteFromSeries(UpdatableRecord<?> updatableRecord) {
         var athleteRecord = (AthleteRecord) updatableRecord;
-        categoryRepository.deleteCategoryAthlete(athleteRecord, seriesRecord.getId());
+        categoryAthleteRepository.deleteCategoryAthlete(athleteRecord, seriesRecord.getId());
         refreshAll();
     }
 

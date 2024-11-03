@@ -4,6 +4,7 @@ import ch.jtaf.db.tables.Series;
 import ch.jtaf.db.tables.records.SeriesRecord;
 import ch.martinelli.oss.jooqspring.JooqRepository;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,7 +12,10 @@ import java.util.List;
 
 import static ch.jtaf.db.tables.Category.CATEGORY;
 import static ch.jtaf.db.tables.CategoryEvent.CATEGORY_EVENT;
+import static ch.jtaf.db.tables.Competition.COMPETITION;
 import static ch.jtaf.db.tables.Series.SERIES;
+import static org.jooq.impl.DSL.field;
+import static org.jooq.impl.DSL.select;
 
 @Repository
 public class SeriesRepository extends JooqRepository<Series, SeriesRecord, Long> {
@@ -65,6 +69,13 @@ public class SeriesRepository extends JooqRepository<Series, SeriesRecord, Long>
             .and(SERIES.ID.ne(seriesId))
             .orderBy(SERIES.NAME)
             .offset(offset).limit(limit)
+            .fetch();
+    }
+
+    public List<SeriesRecord> findAllOrderByCompetitionDate() {
+        return dslContext
+            .selectFrom(SERIES)
+            .orderBy(field(select(DSL.max(COMPETITION.COMPETITION_DATE)).from(COMPETITION).where(COMPETITION.SERIES_ID.eq(SERIES.ID))).desc())
             .fetch();
     }
 }

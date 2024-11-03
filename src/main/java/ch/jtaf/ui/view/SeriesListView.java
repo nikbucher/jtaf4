@@ -2,6 +2,7 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.SeriesRecord;
+import ch.jtaf.domain.CategoryAthleteRepository;
 import ch.jtaf.domain.CategoryRepository;
 import ch.jtaf.domain.SeriesRepository;
 import ch.jtaf.ui.dialog.ConfirmDialog;
@@ -29,9 +30,9 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
-    private final CategoryRepository categoryRepository;
 
-    public SeriesListView(SeriesRepository seriesRepository, OrganizationProvider organizationProvider, CategoryRepository categoryRepository) {
+    public SeriesListView(SeriesRepository seriesRepository, OrganizationProvider organizationProvider,
+                          CategoryRepository categoryRepository, CategoryAthleteRepository categoryAthleteRepository) {
         super(seriesRepository, organizationProvider, SERIES);
 
         setHeightFull();
@@ -45,7 +46,7 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
         grid.addComponentColumn(LogoUtil::resizeLogo).setHeader(getTranslation("Logo")).setAutoWidth(true);
         grid.addColumn(SeriesRecord::getName).setHeader(getTranslation("Name")).setSortable(true).setAutoWidth(true).setKey(SERIES.NAME.getName());
 
-        grid.addColumn(seriesRecord -> categoryRepository.countAthletesBySeriesId(seriesRecord.getId()))
+        grid.addColumn(seriesRecord -> categoryAthleteRepository.countAthletesBySeriesId(seriesRecord.getId()))
             .setHeader(getTranslation("Number.of.Athletes")).setAutoWidth(true);
 
         grid.addComponentColumn(seriesRecord -> {
@@ -88,7 +89,6 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
         grid.addItemClickListener(event -> UI.getCurrent().navigate(SeriesView.class, event.getItem().getId()));
 
         add(grid);
-        this.categoryRepository = categoryRepository;
     }
 
     @Override
