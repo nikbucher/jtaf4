@@ -1,4 +1,4 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.configuration.security.Role;

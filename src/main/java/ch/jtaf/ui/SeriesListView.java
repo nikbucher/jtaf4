@@ -1,12 +1,10 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.SeriesRecord;
 import ch.jtaf.domain.CategoryAthleteRepository;
-import ch.jtaf.domain.CategoryRepository;
 import ch.jtaf.domain.SeriesRepository;
 import ch.jtaf.ui.dialog.ConfirmDialog;
-import ch.jtaf.ui.layout.MainLayout;
 import ch.jtaf.ui.util.LogoUtil;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -32,11 +30,17 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
     private static final long serialVersionUID = 1L;
 
     public SeriesListView(SeriesRepository seriesRepository, OrganizationProvider organizationProvider,
-                          CategoryRepository categoryRepository, CategoryAthleteRepository categoryAthleteRepository) {
+                          CategoryAthleteRepository categoryAthleteRepository) {
         super(seriesRepository, organizationProvider, SERIES);
 
         setHeightFull();
 
+        createGrid(seriesRepository, categoryAthleteRepository);
+
+        add(grid);
+    }
+
+    private void createGrid(SeriesRepository seriesRepository, CategoryAthleteRepository categoryAthleteRepository) {
         var add = new Button(getTranslation("Add"));
         add.setId("add-series");
         add.addClickListener(event -> UI.getCurrent().navigate(SeriesView.class));
@@ -87,8 +91,6 @@ public class SeriesListView extends ProtectedGridView<SeriesRecord> {
         }).setTextAlign(ColumnTextAlign.END).setHeader(add).setAutoWidth(true).setKey("delete-column");
 
         grid.addItemClickListener(event -> UI.getCurrent().navigate(SeriesView.class, event.getItem().getId()));
-
-        add(grid);
     }
 
     @Override

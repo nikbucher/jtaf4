@@ -4,6 +4,7 @@ import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.configuration.security.Role;
 import ch.jtaf.db.tables.records.OrganizationRecord;
 import ch.jtaf.ui.KaribuTest;
+import ch.jtaf.ui.OrganizationsView;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.dialog.OrganizationDialog;
 import com.github.mvysny.fakeservlet.FakeRequest;

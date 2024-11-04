@@ -1,10 +1,9 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.EventRecord;
 import ch.jtaf.domain.EventRepository;
 import ch.jtaf.ui.dialog.EventDialog;
-import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
 import org.jooq.OrderField;
@@ -20,14 +19,20 @@ public class EventsView extends ProtectedGridView<EventRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
+    private final EventDialog dialog;
 
     public EventsView(EventRepository eventRepository, OrganizationProvider organizationProvider) {
         super(eventRepository, organizationProvider, EVENT);
 
         setHeightFull();
 
-        var dialog = new EventDialog(getTranslation("Event"), eventRepository);
+        dialog = new EventDialog(getTranslation("Event"), eventRepository);
 
+        createGrid();
+        add(grid);
+    }
+
+    private void createGrid() {
         grid.setId("events-grid");
 
         grid.addColumn(EventRecord::getAbbreviation).setHeader(getTranslation("Abbreviation")).setSortable(true).setAutoWidth(true).setKey(EVENT.ABBREVIATION.getName());
@@ -38,13 +43,12 @@ public class EventsView extends ProtectedGridView<EventRecord> {
         grid.addColumn(EventRecord::getB).setHeader("B").setAutoWidth(true);
         grid.addColumn(EventRecord::getC).setHeader("C").setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(eventRepository, grid, dialog, eventRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(jooqRepository
+            , grid, dialog, eventRecord -> refreshAll(), () -> {
             var newRecord = EVENT.newRecord();
             newRecord.setOrganizationId(organizationRecord.getId());
             return newRecord;
         }, this::refreshAll);
-
-        add(grid);
     }
 
     @Override

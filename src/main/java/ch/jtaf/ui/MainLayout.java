@@ -1,8 +1,7 @@
-package ch.jtaf.ui.layout;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.configuration.security.SecurityContext;
-import ch.jtaf.ui.view.*;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;

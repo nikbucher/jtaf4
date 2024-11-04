@@ -41,6 +41,7 @@ public class GridBuilder {
         var buttonAdd = new Button(grid.getTranslation("Add"));
         buttonAdd.setId("add-button");
         buttonAdd.addClickListener(event -> dialog.open(onNewRecord.get(), afterSave));
+
         grid.addComponentColumn(updatableRecord -> {
             var delete = new Button(insteadOfDeleteTitle != null ? insteadOfDeleteTitle : grid.getTranslation("Delete"));
             delete.addThemeVariants(ButtonVariant.LUMO_ERROR);

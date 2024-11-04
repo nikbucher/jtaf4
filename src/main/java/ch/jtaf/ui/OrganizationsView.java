@@ -1,4 +1,4 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.configuration.security.Role;
@@ -7,7 +7,6 @@ import ch.jtaf.db.tables.records.OrganizationRecord;
 import ch.jtaf.domain.OrganizationRepository;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.dialog.OrganizationDialog;
-import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -35,7 +34,8 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
     private final OrganizationRepository organizationRepository;
     private final transient SecurityContext securityContext;
 
-    private final Grid<OrganizationRecord> grid;
+    private Grid<OrganizationRecord> grid;
+    private final OrganizationDialog dialog;
 
     public OrganizationsView(OrganizationRepository organizationRepository, OrganizationProvider organizationProvider,
                              SecurityContext securityContext) {
@@ -44,8 +44,16 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
 
         setHeightFull();
 
-        var dialog = new OrganizationDialog(getTranslation("Organization"), organizationRepository);
+        dialog = new OrganizationDialog(getTranslation("Organization"), organizationRepository);
 
+        createGrid(organizationRepository, organizationProvider, securityContext);
+
+        loadData(null);
+
+        add(grid);
+    }
+
+    private Grid<OrganizationRecord> createGrid(OrganizationRepository organizationRepository, OrganizationProvider organizationProvider, SecurityContext securityContext) {
         var add = new Button(getTranslation("Add"));
         add.setId("add-button");
         add.addClickListener(event -> {
@@ -97,10 +105,7 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
         }).setTextAlign(ColumnTextAlign.END).setHeader(add).setAutoWidth(true).setKey("edit-column");
 
         grid.addItemClickListener(event -> dialog.open(event.getItem(), this::loadData));
-
-        loadData(null);
-
-        add(grid);
+        return grid;
     }
 
     private void loadData(OrganizationRecord organizationRecord) {

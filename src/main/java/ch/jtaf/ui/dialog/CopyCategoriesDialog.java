@@ -25,7 +25,9 @@ public class CopyCategoriesDialog extends Dialog {
         seriesSelection.setId("series-selection");
         seriesSelection.setWidth("300px");
         seriesSelection.setItemLabelGenerator(SeriesRecord::getName);
-        seriesSelection.setItems(query -> seriesRepository.findByOrganizationIdAndSeriesId(organizationId, currentSeriesId, query.getOffset(), query.getLimit()).stream());
+        seriesSelection.setItems(query ->
+            seriesRepository.findByOrganizationIdAndSeriesId(organizationId, currentSeriesId,
+            query.getOffset(), query.getLimit()).stream());
 
         add(seriesSelection);
 

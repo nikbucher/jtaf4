@@ -1,10 +1,9 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.*;
 import ch.jtaf.domain.*;
 import ch.jtaf.ui.dialog.*;
-import ch.jtaf.ui.layout.MainLayout;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -65,7 +64,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
     private final CategoryAthleteRepository categoryAthleteRepository;
     private final transient NumberAndSheetsService numberAndSheetsService;
 
-    private final Button copyCategories;
+    private Button copyCategories;
 
     private SeriesRecord seriesRecord;
 
@@ -94,6 +93,44 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         this.seriesRepository = seriesRepository;
         this.categoryAthleteRepository = categoryAthleteRepository;
 
+        createSeriesForm(organizationProvider, seriesRepository);
+
+        sectionTabs.setWidthFull();
+        add(sectionTabs);
+
+        createCompetitionsSection();
+        createCategoriesSection();
+        createAthletesSection();
+
+        var grids = new Div(competitionsGrid, categoriesGrid, athletesGrid);
+        grids.setWidthFull();
+        grids.setHeightFull();
+        add(grids);
+
+        var tabCompetitions = new Tab(getTranslation("Competitions"));
+        sectionTabs.add(tabCompetitions);
+        var tabCategories = new Tab(getTranslation("Categories"));
+        sectionTabs.add(tabCategories);
+        var tabAthletes = new Tab(getTranslation("Athletes"));
+        sectionTabs.add(tabAthletes);
+
+        var tabsToGrids = new HashMap<Tab, Grid<? extends UpdatableRecord<?>>>();
+        tabsToGrids.put(tabCompetitions, competitionsGrid);
+        tabsToGrids.put(tabCategories, categoriesGrid);
+        tabsToGrids.put(tabAthletes, athletesGrid);
+
+        categoriesGrid.setVisible(false);
+        athletesGrid.setVisible(false);
+
+        sectionTabs.addSelectedChangeListener(event -> {
+            tabsToGrids.values().forEach(grid -> grid.setVisible(false));
+
+            var selectedGrid = tabsToGrids.get(sectionTabs.getSelectedTab());
+            selectedGrid.setVisible(true);
+        });
+    }
+
+    private void createSeriesForm(OrganizationProvider organizationProvider, SeriesRepository seriesRepository) {
         var formLayout = new FormLayout();
         add(formLayout);
 
@@ -171,40 +208,6 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             }
         });
         buttons.add(copyCategories);
-
-        sectionTabs.setWidthFull();
-        add(sectionTabs);
-
-        createCompetitionsSection();
-        createCategoriesSection();
-        createAthletesSection();
-
-        var grids = new Div(competitionsGrid, categoriesGrid, athletesGrid);
-        grids.setWidthFull();
-        grids.setHeightFull();
-        add(grids);
-
-        var tabCompetitions = new Tab(getTranslation("Competitions"));
-        sectionTabs.add(tabCompetitions);
-        var tabCategories = new Tab(getTranslation("Categories"));
-        sectionTabs.add(tabCategories);
-        var tabAthletes = new Tab(getTranslation("Athletes"));
-        sectionTabs.add(tabAthletes);
-
-        var tabsToGrids = new HashMap<Tab, Grid<? extends UpdatableRecord<?>>>();
-        tabsToGrids.put(tabCompetitions, competitionsGrid);
-        tabsToGrids.put(tabCategories, categoriesGrid);
-        tabsToGrids.put(tabAthletes, athletesGrid);
-
-        categoriesGrid.setVisible(false);
-        athletesGrid.setVisible(false);
-
-        sectionTabs.addSelectedChangeListener(event -> {
-            tabsToGrids.values().forEach(grid -> grid.setVisible(false));
-
-            var selectedGrid = tabsToGrids.get(sectionTabs.getSelectedTab());
-            selectedGrid.setVisible(true);
-        });
     }
 
     @Override

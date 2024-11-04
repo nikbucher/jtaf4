@@ -1,10 +1,9 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.Role;
 import ch.jtaf.db.tables.records.ResultRecord;
 import ch.jtaf.domain.*;
 import ch.jtaf.ui.dialog.ConfirmDialog;
-import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -51,8 +50,8 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     private final EventRepository eventRepository;
 
     private final Grid<Record4<Long, String, String, Long>> grid = new Grid<>();
-    private final ConfigurableFilterDataProvider<Record4<Long, String, String, Long>, Void, String> dataProvider;
     private final Div form = new Div();
+    private ConfigurableFilterDataProvider<Record4<Long, String, String, Long>, Void, String> dataProvider;
     private TextField resultTextField;
     private long competitionId;
 
@@ -65,6 +64,38 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
         this.competitionRepository = competitionRepository;
         this.eventRepository = eventRepository;
 
+        createDataProvider(athleteRepository);
+
+        var filter = createFilter();
+        add(filter);
+
+        createGrid();
+        add(grid);
+
+        add(form);
+
+        grid.asSingleSelect().addValueChangeListener(this::createForm);
+    }
+
+    private void createGrid() {
+        grid.addColumn(athleteRecord -> athleteRecord.get(ATHLETE.ID)).setHeader("ID").setSortable(true).setAutoWidth(true).setKey(ATHLETE.ID.getName());
+        grid.addColumn(athleteRecord -> athleteRecord.get(ATHLETE.LAST_NAME)).setHeader(getTranslation("Last.Name")).setSortable(true).setAutoWidth(true).setKey(ATHLETE.LAST_NAME.getName());
+        grid.addColumn(athleteRecord -> athleteRecord.get(ATHLETE.FIRST_NAME)).setHeader(getTranslation("First.Name")).setSortable(true).setAutoWidth(true).setKey(ATHLETE.FIRST_NAME.getName());
+        grid.setItems(dataProvider);
+        grid.setHeight("200px");
+    }
+
+    private TextField createFilter() {
+        var filter = new TextField();
+        filter.setId("filter");
+        filter.setAutoselect(true);
+        filter.setAutofocus(true);
+        filter.addValueChangeListener(event -> dataProvider.setFilter(event.getValue()));
+        return filter;
+    }
+
+    private void createDataProvider(AthleteRepository athleteRepository) {
+        final ConfigurableFilterDataProvider<Record4<Long, String, String, Long>, Void, String> dataProvider;
         this.dataProvider = new CallbackDataProvider<>(
             query -> {
                 var athletes = athleteRepository.getAthletes(competitionId, createCondition(query), query.getOffset(), query.getLimit());
@@ -85,24 +116,6 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
             },
             athleteRecord -> athleteRecord.get(ATHLETE.ID)
         ).withConfigurableFilter();
-
-        var filter = new TextField();
-        filter.setId("filter");
-        filter.setAutoselect(true);
-        filter.setAutofocus(true);
-        filter.addValueChangeListener(event -> dataProvider.setFilter(event.getValue()));
-        add(filter);
-
-        grid.addColumn(athleteRecord -> athleteRecord.get(ATHLETE.ID)).setHeader("ID").setSortable(true).setAutoWidth(true).setKey(ATHLETE.ID.getName());
-        grid.addColumn(athleteRecord -> athleteRecord.get(ATHLETE.LAST_NAME)).setHeader(getTranslation("Last.Name")).setSortable(true).setAutoWidth(true).setKey(ATHLETE.LAST_NAME.getName());
-        grid.addColumn(athleteRecord -> athleteRecord.get(ATHLETE.FIRST_NAME)).setHeader(getTranslation("First.Name")).setSortable(true).setAutoWidth(true).setKey(ATHLETE.FIRST_NAME.getName());
-        grid.setItems(dataProvider);
-        grid.setHeight("200px");
-        add(grid);
-
-        add(form);
-
-        grid.asSingleSelect().addValueChangeListener(this::createForm);
     }
 
     private void createForm(AbstractField.ComponentValueChangeEvent<Grid<Record4<Long, String, String, Long>>, Record4<Long, String, String, Long>> event) {

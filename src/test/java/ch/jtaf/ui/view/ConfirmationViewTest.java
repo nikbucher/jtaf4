@@ -3,6 +3,7 @@ package ch.jtaf.ui.view;
 import ch.jtaf.db.tables.records.SecurityUserRecord;
 import ch.jtaf.domain.UserAlreadyExistException;
 import ch.jtaf.domain.UserService;
+import ch.jtaf.ui.ConfirmView;
 import ch.jtaf.ui.KaribuTest;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.H1;

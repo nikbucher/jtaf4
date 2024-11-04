@@ -1,10 +1,9 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.ClubRecord;
 import ch.jtaf.domain.ClubRepository;
 import ch.jtaf.ui.dialog.ClubDialog;
-import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.router.Route;
 import org.jooq.Condition;
 import org.jooq.OrderField;
@@ -20,27 +19,32 @@ public class ClubsView extends ProtectedGridView<ClubRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
+    private final ClubDialog dialog;
 
     public ClubsView(ClubRepository clubRepository, OrganizationProvider organizationProvider) {
         super(clubRepository, organizationProvider, CLUB);
 
         setHeightFull();
 
-        var dialog = new ClubDialog(getTranslation("Clubs"), clubRepository);
+        dialog = new ClubDialog(getTranslation("Clubs"), clubRepository);
 
+        createGrid();
+
+        add(grid);
+    }
+
+    private void createGrid() {
         grid.setId("clubs-grid");
 
         grid.addColumn(ClubRecord::getAbbreviation).setHeader(getTranslation("Abbreviation")).setSortable(true).setAutoWidth(true).setKey(CLUB.ABBREVIATION.getName());
         grid.addColumn(ClubRecord::getName).setHeader(getTranslation("Name")).setSortable(true).setAutoWidth(true).setKey(CLUB.NAME.getName());
 
-        addActionColumnAndSetSelectionListener(clubRepository, grid, dialog, clubRecord -> refreshAll(),
+        addActionColumnAndSetSelectionListener(jooqRepository, grid, dialog, clubRecord -> refreshAll(),
             () -> {
                 ClubRecord newRecord = CLUB.newRecord();
                 newRecord.setOrganizationId(organizationRecord.getId());
                 return newRecord;
             }, this::refreshAll);
-
-        add(grid);
     }
 
     @Override

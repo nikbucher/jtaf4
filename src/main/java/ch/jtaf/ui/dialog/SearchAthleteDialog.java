@@ -46,7 +46,6 @@ public class SearchAthleteDialog extends Dialog {
 
     public SearchAthleteDialog(AthleteRepository athleteRepository, ClubRepository clubRepository, OrganizationProvider organizationProvider,
                                Long organizationId, Long seriesId, ComponentEventListener<AthleteSelectedEvent> athleteSelectedListener) {
-
         setDraggable(true);
         setResizable(true);
 

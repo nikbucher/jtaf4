@@ -51,8 +51,7 @@ public class JooqDataProviderProducer<R extends UpdatableRecord<R>> {
             for (Field<?> field : table.fields()) {
                 if (field.getType() == String.class) {
                     //noinspection unchecked
-                    condition = condition
-                        .or(upper((Field<String>) field).like(upper("%" + filter.get() + "%")));
+                    condition = condition.or(upper((Field<String>) field).like(upper("%" + filter.get() + "%")));
                 } else {
                     condition = condition.or(field.like("%" + filter.get() + "%"));
                 }

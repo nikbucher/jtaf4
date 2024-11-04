@@ -1,4 +1,4 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.ui.component.JooqDataProviderProducer;
@@ -20,9 +20,11 @@ public abstract class ProtectedGridView<R extends UpdatableRecord<R>> extends Pr
 
     final ConfigurableFilterDataProvider<R, Void, String> dataProvider;
     final Grid<R> grid;
+    protected final JooqRepository<?, R, ?> jooqRepository;
 
     protected ProtectedGridView(JooqRepository<?, R, ?> jooqRepository, OrganizationProvider organizationProvider, Table<R> table) {
         super(organizationProvider);
+        this.jooqRepository = jooqRepository;
 
         grid = new Grid<>();
         grid.setHeightFull();

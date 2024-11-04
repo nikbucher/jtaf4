@@ -1,4 +1,4 @@
-package ch.jtaf.ui.view;
+package ch.jtaf.ui;
 
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.AthleteRecord;
@@ -6,7 +6,6 @@ import ch.jtaf.db.tables.records.ClubRecord;
 import ch.jtaf.domain.AthleteRepository;
 import ch.jtaf.domain.ClubRepository;
 import ch.jtaf.ui.dialog.AthleteDialog;
-import ch.jtaf.ui.layout.MainLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.Route;
@@ -29,6 +28,7 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
     private static final long serialVersionUID = 1L;
 
     private final ClubRepository clubRepository;
+    private final AthleteDialog dialog;
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
 
     public AthletesView(AthleteRepository athleteRepository, ClubRepository clubRepository, OrganizationProvider organizationProvider) {
@@ -37,15 +37,18 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
 
         setHeightFull();
 
-        var dialog = new AthleteDialog(getTranslation("Athlete"), athleteRepository, clubRepository, organizationProvider);
+        dialog = new AthleteDialog(getTranslation("Athlete"), athleteRepository, clubRepository, organizationProvider);
 
-        var filter = new TextField(getTranslation("Filter"));
-        filter.setId("filter");
-        filter.setAutoselect(true);
-        filter.setAutofocus(true);
-        filter.setValueChangeMode(ValueChangeMode.EAGER);
+        var filter = createFilter();
         add(filter);
 
+        createGrid();
+        add(grid);
+
+        filter.focus();
+    }
+
+    private void createGrid() {
         grid.setId("athletes-grid");
 
         grid.addColumn(AthleteRecord::getLastName).setHeader(getTranslation("Last.Name")).setSortable(true).setAutoWidth(true).setKey(ATHLETE.LAST_NAME.getName());
@@ -56,18 +59,23 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
             ? null
             : clubRecordMap.get(athleteRecord.getClubId()).getAbbreviation()).setHeader(getTranslation("Club")).setAutoWidth(true);
 
-        addActionColumnAndSetSelectionListener(athleteRepository, grid, dialog, athleteRecord -> refreshAll(), () -> {
+        addActionColumnAndSetSelectionListener(jooqRepository, grid, dialog, athleteRecord -> refreshAll(), () -> {
             AthleteRecord newRecord = ATHLETE.newRecord();
             newRecord.setOrganizationId(organizationRecord.getId());
             return newRecord;
         }, this::refreshAll);
+    }
 
+    private TextField createFilter() {
+        var filter = new TextField(getTranslation("Filter"));
+        filter.setId("filter");
+        filter.setAutoselect(true);
+        filter.setAutofocus(true);
+        filter.setValueChangeMode(ValueChangeMode.EAGER);
 
         filter.addValueChangeListener(event -> dataProvider.setFilter(event.getValue()));
 
-        add(grid);
-
-        filter.focus();
+        return filter;
     }
 
     @Override
