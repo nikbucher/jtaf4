@@ -153,9 +153,9 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
             try {
                 var fileName = event.getFileName();
                 var inputStream = buffer.getInputStream(fileName);
-                SeriesRecord seriesRecord = binder.getBean();
-                seriesRecord.setLogo(inputStream.readAllBytes());
-                seriesRepository.save(seriesRecord);
+                SeriesRecord recordToSave = binder.getBean();
+                recordToSave.setLogo(inputStream.readAllBytes());
+                seriesRepository.save(recordToSave);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -190,8 +190,7 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
         save.setId("save-series");
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickListener(event -> {
-            SeriesRecord seriesRecord = binder.getBean();
-            seriesRepository.save(seriesRecord);
+            seriesRepository.save(binder.getBean());
 
             Notification.show(getTranslation("Series.saved"), 6000, Notification.Position.TOP_END);
         });
