@@ -31,7 +31,7 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final OrganizationRepository organizationRepository;
+    private final transient OrganizationRepository organizationRepository;
     private final transient SecurityContext securityContext;
 
     private Grid<OrganizationRecord> grid;

@@ -54,14 +54,14 @@ public class SeriesView extends ProtectedView implements HasUrlParameter<Long> {
 
     private static final String BLANK = "_blank";
 
-    private final CompetitionRepository competitionRepository;
-    private final CategoryRepository categoryRepository;
-    private final AthleteRepository athleteRepository;
-    private final CategoryEventRepository categoryEventRepository;
-    private final ClubRepository clubRepository;
-    private final EventRepository eventRepository;
-    private final SeriesRepository seriesRepository;
-    private final CategoryAthleteRepository categoryAthleteRepository;
+    private final transient CompetitionRepository competitionRepository;
+    private final transient CategoryRepository categoryRepository;
+    private final transient AthleteRepository athleteRepository;
+    private final transient CategoryEventRepository categoryEventRepository;
+    private final transient ClubRepository clubRepository;
+    private final transient EventRepository eventRepository;
+    private final transient SeriesRepository seriesRepository;
+    private final transient CategoryAthleteRepository categoryAthleteRepository;
     private final transient NumberAndSheetsService numberAndSheetsService;
 
     private Button copyCategories;

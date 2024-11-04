@@ -20,7 +20,7 @@ public abstract class ProtectedGridView<R extends UpdatableRecord<R>> extends Pr
 
     final ConfigurableFilterDataProvider<R, Void, String> dataProvider;
     final Grid<R> grid;
-    protected final JooqRepository<?, R, ?> jooqRepository;
+    protected final transient JooqRepository<?, R, ?> jooqRepository;
 
     protected ProtectedGridView(JooqRepository<?, R, ?> jooqRepository, OrganizationProvider organizationProvider, Table<R> table) {
         super(organizationProvider);

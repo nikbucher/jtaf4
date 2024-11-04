@@ -21,7 +21,7 @@ public abstract class EditDialog<R extends UpdatableRecord<R>> extends Dialog {
     public static final String FULLSCREEN = "fullscreen";
 
     private final String initialWidth;
-    protected final JooqRepository<?, R, ?> jooqRepository;
+    protected final transient JooqRepository<?, R, ?> jooqRepository;
 
     private boolean isFullScreen = false;
     private final Div content;

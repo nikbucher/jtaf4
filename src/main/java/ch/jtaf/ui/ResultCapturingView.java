@@ -44,10 +44,10 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     private static final String REMOVE_RESULTS = "Remove.results";
 
     private final transient ResultCalculator resultCalculator;
-    private final ResultRepository resultRepository;
-    private final CategoryAthleteRepository categoryAthleteRepository;
-    private final CompetitionRepository competitionRepository;
-    private final EventRepository eventRepository;
+    private final transient ResultRepository resultRepository;
+    private final transient CategoryAthleteRepository categoryAthleteRepository;
+    private final transient CompetitionRepository competitionRepository;
+    private final transient EventRepository eventRepository;
 
     private final Grid<Record4<Long, String, String, Long>> grid = new Grid<>();
     private final Div form = new Div();
@@ -95,7 +95,6 @@ public class ResultCapturingView extends VerticalLayout implements HasDynamicTit
     }
 
     private void createDataProvider(AthleteRepository athleteRepository) {
-        final ConfigurableFilterDataProvider<Record4<Long, String, String, Long>, Void, String> dataProvider;
         this.dataProvider = new CallbackDataProvider<>(
             query -> {
                 var athletes = athleteRepository.getAthletes(competitionId, createCondition(query), query.getOffset(), query.getLimit());

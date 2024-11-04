@@ -27,7 +27,7 @@ public class AthletesView extends ProtectedGridView<AthleteRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final ClubRepository clubRepository;
+    private final transient ClubRepository clubRepository;
     private final AthleteDialog dialog;
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
 

@@ -27,9 +27,11 @@ public class CategoryDialog extends EditDialog<CategoryRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
     private final long organizationId;
-    private final CategoryEventRepository categoryEventRepository;
-    private final EventRepository eventRepository;
+
+    private final transient CategoryEventRepository categoryEventRepository;
+    private final transient EventRepository eventRepository;
 
     private Grid<CategoryEventVO> categoryEventsGrid;
 

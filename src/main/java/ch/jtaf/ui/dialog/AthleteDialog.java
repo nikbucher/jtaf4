@@ -27,7 +27,7 @@ public class AthleteDialog extends EditDialog<AthleteRecord> {
     private static final long serialVersionUID = 1L;
 
     private final transient OrganizationProvider organizationProvider;
-    private final ClubRepository clubRepository;
+    private final transient ClubRepository clubRepository;
 
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
 
