@@ -2,7 +2,6 @@ package ch.jtaf.ui;
 
 import ch.jtaf.db.tables.records.OrganizationRecord;
 import ch.jtaf.db.tables.records.SeriesRecord;
-import ch.jtaf.ui.view.OrganizationsView;
 import com.github.mvysny.fakeservlet.FakeRequest;
 import com.github.mvysny.kaributesting.v10.GridKt;
 import com.github.mvysny.kaributesting.v10.MockVaadin;

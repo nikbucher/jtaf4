@@ -2,6 +2,7 @@ package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.CategoryRecord;
 import ch.jtaf.db.tables.records.EventRecord;
+import ch.jtaf.domain.EventRepository;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -18,12 +19,10 @@ import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import org.apache.commons.lang3.StringUtils;
 import org.jooq.Condition;
-import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
 
 import java.io.Serial;
 
-import static ch.jtaf.db.tables.CategoryEvent.CATEGORY_EVENT;
 import static ch.jtaf.db.tables.Event.EVENT;
 import static org.jooq.impl.DSL.upper;
 
@@ -40,7 +39,7 @@ public class SearchEventDialog extends Dialog {
 
     private final ConfigurableFilterDataProvider<EventRecord, Void, String> dataProvider;
 
-    public SearchEventDialog(DSLContext dslContext, long organizationId, CategoryRecord categoryRecord,
+    public SearchEventDialog(EventRepository eventRepository, long organizationId, CategoryRecord categoryRecord,
                              ComponentEventListener<AssignEvent> assignEventListener) {
         setId("search-event-dialog");
 
@@ -67,34 +66,11 @@ public class SearchEventDialog extends Dialog {
         filter.setValueChangeMode(ValueChangeMode.EAGER);
 
         CallbackDataProvider<EventRecord, String> callbackDataProvider = DataProvider.fromFilteringCallbacks(
-            query -> dslContext
-                .selectFrom(EVENT)
-                .where(EVENT.ORGANIZATION_ID.eq(organizationId))
-                .and(EVENT.GENDER.eq(categoryRecord.getGender()))
-                .and(EVENT.ID.notIn(dslContext
-                    .select(CATEGORY_EVENT.EVENT_ID)
-                    .from(CATEGORY_EVENT)
-                    .where(CATEGORY_EVENT.CATEGORY_ID.eq(categoryRecord.getId()))
-                ))
-                .and(createCondition(query))
-                .orderBy(EVENT.ABBREVIATION, EVENT.GENDER)
-                .offset(query.getOffset()).limit(query.getLimit())
-                .fetchStream(),
-            query -> {
-                var count = dslContext
-                    .selectCount()
-                    .from(EVENT)
-                    .where(EVENT.ORGANIZATION_ID.eq(organizationId))
-                    .and(EVENT.GENDER.eq(categoryRecord.getGender()))
-                    .and(EVENT.ID.notIn(dslContext
-                        .select(CATEGORY_EVENT.EVENT_ID)
-                        .from(CATEGORY_EVENT)
-                        .where(CATEGORY_EVENT.CATEGORY_ID.eq(categoryRecord.getId()))
-                    ))
-                    .and(createCondition(query))
-                    .fetchOneInto(Integer.class);
-                return count != null ? count : 0;
-            });
+            query -> eventRepository.findAllByOrganizationGenderCategory(
+                organizationId, categoryRecord.getGender(), categoryRecord.getId(), createCondition(query),
+                query.getOffset(), query.getLimit()).stream(),
+            query -> eventRepository.countByOrganizationGenderCategory(
+                organizationId, categoryRecord.getGender(), categoryRecord.getId(), createCondition(query)));
 
         dataProvider = callbackDataProvider.withConfigurableFilter();
 

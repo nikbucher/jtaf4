@@ -1,8 +1,8 @@
 package ch.jtaf.ui.component;
 
+import ch.martinelli.oss.jooqspring.JooqRepository;
 import com.vaadin.flow.data.provider.Query;
 import com.vaadin.flow.data.provider.*;
-import org.jooq.Record;
 import org.jooq.*;
 
 import java.util.ArrayList;
@@ -13,16 +13,16 @@ import java.util.stream.Stream;
 import static org.jooq.impl.DSL.noCondition;
 import static org.jooq.impl.DSL.upper;
 
-public class JooqDataProviderProducer<R extends Record> {
+public class JooqDataProviderProducer<R extends UpdatableRecord<R>> {
 
-    private final DSLContext dslContext;
+    private final JooqRepository<?, R, ?> jooqRepository;
     private final Table<R> table;
     private final ConfigurableFilterDataProvider<R, Void, String> dataProvider;
     private final Supplier<Condition> initialCondition;
-    private final Supplier<SortField<?>[]> initialSort;
+    private final Supplier<List<OrderField<?>>> initialSort;
 
-    public JooqDataProviderProducer(DSLContext dslContext, Table<R> table, Supplier<Condition> initialCondition, Supplier<SortField<?>[]> initialSort) {
-        this.dslContext = dslContext;
+    public JooqDataProviderProducer(JooqRepository<?, R, ?> jooqRepository, Table<R> table, Supplier<Condition> initialCondition, Supplier<List<OrderField<?>>> initialSort) {
+        this.jooqRepository = jooqRepository;
         this.table = table;
         this.initialCondition = initialCondition;
         this.initialSort = initialSort;
@@ -35,21 +35,13 @@ public class JooqDataProviderProducer<R extends Record> {
     }
 
     private Stream<R> fetch(Query<R, String> query) {
-        return dslContext
-            .selectFrom(table)
-            .where(createCondition(query))
-            .orderBy(createOrderBy(query))
-            .offset(query.getOffset())
-            .limit(query.getLimit())
-            .stream();
+        List<R> all = jooqRepository.findAll(createCondition(query), query.getOffset(), query.getLimit(),
+            createOrderBy(query));
+        return all.stream();
     }
 
     private int count(Query<R, String> query) {
-        return dslContext
-            .selectCount()
-            .from(table)
-            .where(createCondition(query))
-            .fetchOptionalInto(Integer.class).orElse(0);
+        return jooqRepository.count(createCondition(query));
     }
 
     private Condition createCondition(Query<R, String> query) {
@@ -59,8 +51,7 @@ public class JooqDataProviderProducer<R extends Record> {
             for (Field<?> field : table.fields()) {
                 if (field.getType() == String.class) {
                     //noinspection unchecked
-                    condition = condition
-                        .or(upper((Field<String>) field).like(upper("%" + filter.get() + "%")));
+                    condition = condition.or(upper((Field<String>) field).like(upper("%" + filter.get() + "%")));
                 } else {
                     condition = condition.or(field.like("%" + filter.get() + "%"));
                 }
@@ -70,11 +61,11 @@ public class JooqDataProviderProducer<R extends Record> {
         return condition;
     }
 
-    private SortField<?>[] createOrderBy(Query<R, String> query) {
+    private List<OrderField<?>> createOrderBy(Query<R, String> query) {
         if (query.getSortOrders().isEmpty()) {
             return initialSort.get();
         } else {
-            List<SortField<?>> sortFields = new ArrayList<>();
+            List<OrderField<?>> sortFields = new ArrayList<>();
             for (QuerySortOrder sortOrder : query.getSortOrders()) {
                 String column = sortOrder.getSorted();
                 SortDirection sortDirection = sortOrder.getDirection();
@@ -87,7 +78,7 @@ public class JooqDataProviderProducer<R extends Record> {
                     }
                 }
             }
-            return sortFields.toArray(new SortField<?>[0]);
+            return sortFields;
         }
     }
 }

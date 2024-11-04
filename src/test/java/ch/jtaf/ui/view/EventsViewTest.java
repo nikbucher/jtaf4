@@ -2,6 +2,7 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.Role;
 import ch.jtaf.db.tables.records.EventRecord;
+import ch.jtaf.ui.EventsView;
 import ch.jtaf.ui.KaribuTest;
 import ch.jtaf.ui.dialog.ConfirmDialog;
 import ch.jtaf.ui.dialog.EventDialog;

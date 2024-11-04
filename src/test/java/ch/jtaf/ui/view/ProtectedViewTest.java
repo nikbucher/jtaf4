@@ -1,6 +1,7 @@
 package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.Role;
+import ch.jtaf.ui.ClubsView;
 import ch.jtaf.ui.KaribuTest;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.H1;

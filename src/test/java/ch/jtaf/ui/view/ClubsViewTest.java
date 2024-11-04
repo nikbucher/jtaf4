@@ -2,6 +2,7 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.Role;
 import ch.jtaf.db.tables.records.ClubRecord;
+import ch.jtaf.ui.ClubsView;
 import ch.jtaf.ui.KaribuTest;
 import ch.jtaf.ui.dialog.ClubDialog;
 import ch.jtaf.ui.dialog.ConfirmDialog;
