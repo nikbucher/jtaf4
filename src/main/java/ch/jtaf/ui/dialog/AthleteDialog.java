@@ -3,7 +3,9 @@ package ch.jtaf.ui.dialog;
 import ch.jtaf.configuration.security.OrganizationProvider;
 import ch.jtaf.db.tables.records.AthleteRecord;
 import ch.jtaf.db.tables.records.ClubRecord;
-import ch.jtaf.model.Gender;
+import ch.jtaf.domain.AthleteRepository;
+import ch.jtaf.domain.ClubRepository;
+import ch.jtaf.domain.Gender;
 import ch.jtaf.ui.converter.JtafStringToIntegerConverter;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.select.Select;
@@ -11,7 +13,6 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Result;
 import com.vaadin.flow.data.binder.ValueContext;
 import com.vaadin.flow.data.converter.Converter;
-import org.jooq.DSLContext;
 
 import java.io.Serial;
 import java.util.Collections;
@@ -20,18 +21,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
-import static ch.jtaf.db.tables.Club.CLUB;
-
 public class AthleteDialog extends EditDialog<AthleteRecord> {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private final transient OrganizationProvider organizationProvider;
+    private final ClubRepository clubRepository;
+
     private Map<Long, ClubRecord> clubRecordMap = new HashMap<>();
 
-    public AthleteDialog(String title) {
-        super(title, "600px");
+    public AthleteDialog(String title, AthleteRepository athleteRepository, ClubRepository clubRepository, OrganizationProvider organizationProvider) {
+        super(title, "600px", athleteRepository);
+        this.clubRepository = clubRepository;
+        this.organizationProvider = organizationProvider;
     }
 
     @SuppressWarnings("DuplicatedCode")
@@ -104,15 +107,12 @@ public class AthleteDialog extends EditDialog<AthleteRecord> {
     }
 
     private List<ClubRecord> getClubs() {
-        var organizationRecord = getBean(OrganizationProvider.class).getOrganization();
+        var organizationRecord = organizationProvider.getOrganization();
 
         if (organizationRecord == null) {
             return Collections.emptyList();
         } else {
-            var clubs = getBean(DSLContext.class)
-                .selectFrom(CLUB)
-                .where(CLUB.ORGANIZATION_ID.eq(organizationRecord.getId()))
-                .fetch();
+            var clubs = clubRepository.findByOrganizationId(organizationRecord.getId());
             clubRecordMap = clubs.stream().collect(Collectors.toMap(ClubRecord::getId, clubRecord -> clubRecord));
             return clubs;
         }

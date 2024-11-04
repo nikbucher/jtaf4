@@ -1,8 +1,9 @@
 package ch.jtaf.ui.view;
 
 import ch.jtaf.db.tables.records.SecurityUserRecord;
-import ch.jtaf.service.UserAlreadyExistException;
-import ch.jtaf.service.UserService;
+import ch.jtaf.domain.UserAlreadyExistException;
+import ch.jtaf.domain.UserService;
+import ch.jtaf.ui.ConfirmView;
 import ch.jtaf.ui.KaribuTest;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.H1;
@@ -39,7 +40,7 @@ class ConfirmationViewTest extends KaribuTest {
 
     @Test
     void invalid_query_parameter() {
-        UI.getCurrent().navigate(ConfirmView.class);
+        UI.getCurrent().navigate(ConfirmView.class, new QueryParameters(Map.of("cf", List.of("abc"))));
 
         _assert(H1.class, 1, spec -> spec.withText("The confirmation was not successful."));
     }

@@ -7,12 +7,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.3</version>
+        <version>3.3.5</version>
     </parent>
 
     <groupId>ch.jtaf</groupId>
     <artifactId>jtaf4</artifactId>
-    <version>4.7.9</version>
+    <version>4.8.0</version>
 
     <name>JTAF 4</name>
     <description>JTAF - Track And Field</description>
@@ -51,16 +51,18 @@
     <properties>
         <java.version>21</java.version>
 
-        <vaadin.version>24.4.10</vaadin.version>
-        <jooq-version>3.19.10</jooq-version>
+        <vaadin.version>24.5.2</vaadin.version>
+        <jooq-version>3.19.14</jooq-version>
         <openpdf.version>2.0.3</openpdf.version>
         <googleanalyticstracker.version>5.0.0</googleanalyticstracker.version>
+        <jooq-spring.version>0.1.0</jooq-spring.version>
+        <jooq-utilities.version>1.1.2</jooq-utilities.version>
 
-        <testcontainers.version>1.20.1</testcontainers.version>
+        <testcontainers.version>1.20.3</testcontainers.version>
         <testcontainers-jooq-codegen-maven-plugin.version>0.0.4</testcontainers-jooq-codegen-maven-plugin.version>
         <gitflow.version>1.21.0</gitflow.version>
         <jacoco.version>0.8.12</jacoco.version>
-        <playwright.version>1.46.0</playwright.version>
+        <playwright.version>1.48.0</playwright.version>
         <mopo.version>0.0.3</mopo.version>
 
         <karibu-testing.version>2.1.8</karibu-testing.version>
@@ -73,7 +75,7 @@
         <db.username>jtaf4</db.username>
         <db.password>jtaf420</db.password>
 
-        <sonar.organization>72services</sonar.organization>
+        <sonar.organization>martinellich</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.exclusions>src/main/java/ch/jtaf/Jtaf4Application.java</sonar.exclusions>
     </properties>
@@ -101,7 +103,11 @@
             <artifactId>googleanalyticstracker</artifactId>
             <version>${googleanalyticstracker.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>ch.martinelli.oss</groupId>
+            <artifactId>jooq-spring</artifactId>
+            <version>${jooq-spring.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring-boot-starter</artifactId>
@@ -237,6 +243,11 @@
                         <artifactId>postgresql</artifactId>
                         <version>${postgresql.version}</version>
                     </dependency>
+                    <dependency>
+                        <groupId>ch.martinelli.oss</groupId>
+                        <artifactId>jooq-utilities</artifactId>
+                        <version>${jooq-utilities.version}</version>
+                    </dependency>
                 </dependencies>
                 <executions>
                     <execution>
@@ -262,6 +273,7 @@
                                         <inputSchema>public</inputSchema>
                                         <excludes>flyway_schema_history</excludes>
                                     </database>
+                                    <name>ch.martinelli.oss.jooq.EqualsAndHashCodeJavaGenerator</name>
                                     <target>
                                         <packageName>ch.jtaf.db</packageName>
                                     </target>
@@ -345,7 +357,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.5.1</version>
                 <dependencies>
                     <dependency>
                         <groupId>me.fabriciorby</groupId>
@@ -531,11 +543,4 @@
             </url>
         </pluginRepository>
     </pluginRepositories>
-
-    <distributionManagement>
-        <repository>
-            <id>github</id>
-            <url>https://maven.pkg.github.com/72services/jtaf4</url>
-        </repository>
-    </distributionManagement>
 </project>

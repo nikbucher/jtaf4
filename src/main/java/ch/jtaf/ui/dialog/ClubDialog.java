@@ -1,6 +1,7 @@
 package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.ClubRecord;
+import ch.jtaf.domain.ClubRepository;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.textfield.TextField;
 
@@ -11,8 +12,8 @@ public class ClubDialog extends EditDialog<ClubRecord> {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public ClubDialog(String title) {
-        super(title, "600px");
+    public ClubDialog(String title, ClubRepository clubRepository) {
+        super(title, "600px", clubRepository);
     }
 
     @SuppressWarnings("DuplicatedCode")

@@ -1,8 +1,9 @@
 package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.EventRecord;
-import ch.jtaf.model.EventType;
-import ch.jtaf.model.Gender;
+import ch.jtaf.domain.EventRepository;
+import ch.jtaf.domain.EventType;
+import ch.jtaf.domain.Gender;
 import ch.jtaf.ui.validator.NotEmptyValidator;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.component.textfield.TextField;
@@ -17,8 +18,8 @@ public class EventDialog extends EditDialog<EventRecord> {
 
     private static final String MUST_BE_A_NUMBER = "Must.be.a.number";
 
-    public EventDialog(String title) {
-        super(title, "600px");
+    public EventDialog(String title, EventRepository eventRepository) {
+        super(title, "600px", eventRepository);
     }
 
     @SuppressWarnings("DuplicatedCode")

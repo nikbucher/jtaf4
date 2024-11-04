@@ -1,6 +1,6 @@
 package ch.jtaf.reporting.report;
 
-import ch.jtaf.model.EventType;
+import ch.jtaf.domain.EventType;
 import ch.jtaf.reporting.data.NumbersAndSheetsAthlete;
 import ch.jtaf.reporting.data.NumbersAndSheetsCompetition;
 import com.lowagie.text.*;

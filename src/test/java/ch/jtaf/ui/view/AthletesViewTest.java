@@ -2,6 +2,7 @@ package ch.jtaf.ui.view;
 
 import ch.jtaf.configuration.security.Role;
 import ch.jtaf.db.tables.records.AthleteRecord;
+import ch.jtaf.ui.AthletesView;
 import ch.jtaf.ui.KaribuTest;
 import ch.jtaf.ui.dialog.AthleteDialog;
 import ch.jtaf.ui.dialog.ConfirmDialog;

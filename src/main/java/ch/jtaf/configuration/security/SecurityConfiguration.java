@@ -1,6 +1,6 @@
 package ch.jtaf.configuration.security;
 
-import ch.jtaf.ui.view.LoginView;
+import ch.jtaf.ui.LoginView;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.autoconfigure.security.servlet.EndpointRequest;

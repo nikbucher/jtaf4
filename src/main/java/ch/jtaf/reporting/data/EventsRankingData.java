@@ -1,6 +1,6 @@
 package ch.jtaf.reporting.data;
 
-import ch.jtaf.model.EventType;
+import ch.jtaf.domain.EventType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

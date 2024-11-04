@@ -1,5 +1,6 @@
 package ch.jtaf.ui.dialog;
 
+import ch.martinelli.oss.jooqspring.JooqRepository;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -7,16 +8,12 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.data.binder.Binder;
-import org.jooq.DSLContext;
 import org.jooq.UpdatableRecord;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.Serial;
 import java.util.function.Consumer;
 
-import static ch.jtaf.context.ApplicationContextHolder.getBean;
-
-public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
+public abstract class EditDialog<R extends UpdatableRecord<R>> extends Dialog {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -24,6 +21,7 @@ public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
     public static final String FULLSCREEN = "fullscreen";
 
     private final String initialWidth;
+    protected final JooqRepository<?, R, ?> jooqRepository;
 
     private boolean isFullScreen = false;
     private final Div content;
@@ -35,8 +33,10 @@ public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
     private transient Consumer<R> afterSave;
     private boolean initialized;
 
-    protected EditDialog(String title, String initialWidth) {
+    protected EditDialog(String title, String initialWidth, JooqRepository<?, R, ?> jooqRepository) {
         this.initialWidth = initialWidth;
+        this.jooqRepository = jooqRepository;
+
         setWidth(initialWidth);
 
         setDraggable(true);
@@ -65,14 +65,12 @@ public abstract class EditDialog<R extends UpdatableRecord<?>> extends Dialog {
         save.setId("edit-save");
         save.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         save.addClickListener(event -> {
-            getBean(TransactionTemplate.class).executeWithoutResult(transactionStatus -> {
-                getBean(DSLContext.class).attach(binder.getBean());
-                binder.getBean().store();
+            R record = binder.getBean();
+            jooqRepository.save(record);
 
-                if (afterSave != null) {
-                    afterSave.accept(binder.getBean());
-                }
-            });
+            if (afterSave != null) {
+                afterSave.accept(record);
+            }
             close();
         });
 

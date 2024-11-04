@@ -1,6 +1,7 @@
 package ch.jtaf.ui.view;
 
 import ch.jtaf.ui.KaribuTest;
+import ch.jtaf.ui.RegisterView;
 import com.github.mvysny.kaributesting.v10.NotificationsKt;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
