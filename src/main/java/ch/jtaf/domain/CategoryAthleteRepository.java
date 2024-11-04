@@ -56,11 +56,11 @@ public class CategoryAthleteRepository extends JooqRepository<CategoryAthlete, C
     }
 
     @Transactional
-    public void setDnf(Long athleteId, Long categoreyId, boolean dnf) {
+    public void setDnf(Long athleteId, Long categoryId, boolean dnf) {
         int updatedRows = dslContext.update(CATEGORY_ATHLETE)
             .set(CATEGORY_ATHLETE.DNF, dnf)
             .where(CATEGORY_ATHLETE.ATHLETE_ID.eq(athleteId))
-            .and(CATEGORY_ATHLETE.CATEGORY_ID.eq(categoreyId))
+            .and(CATEGORY_ATHLETE.CATEGORY_ID.eq(categoryId))
             .execute();
         if (updatedRows != 1) {
             throw new IllegalStateException("Dnf update failed");

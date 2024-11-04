@@ -130,7 +130,6 @@ public class SearchAthleteDialog extends Dialog {
         isFullScreen = !isFullScreen;
     }
 
-    @SuppressWarnings("DuplicatedCode")
     private Condition createCondition(Query<?, ?> query) {
         var optionalFilter = query.getFilter();
         if (optionalFilter.isPresent()) {

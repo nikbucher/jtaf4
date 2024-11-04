@@ -53,7 +53,7 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
         add(grid);
     }
 
-    private Grid<OrganizationRecord> createGrid(OrganizationRepository organizationRepository, OrganizationProvider organizationProvider, SecurityContext securityContext) {
+    private void createGrid(OrganizationRepository organizationRepository, OrganizationProvider organizationProvider, SecurityContext securityContext) {
         var add = new Button(getTranslation("Add"));
         add.setId("add-button");
         add.addClickListener(event -> {
@@ -105,7 +105,6 @@ public class OrganizationsView extends VerticalLayout implements HasDynamicTitle
         }).setTextAlign(ColumnTextAlign.END).setHeader(add).setAutoWidth(true).setKey("edit-column");
 
         grid.addItemClickListener(event -> dialog.open(event.getItem(), this::loadData));
-        return grid;
     }
 
     private void loadData(OrganizationRecord organizationRecord) {

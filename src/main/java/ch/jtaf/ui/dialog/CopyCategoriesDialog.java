@@ -10,7 +10,6 @@ import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.shared.Registration;
 
 public class CopyCategoriesDialog extends Dialog {
 
@@ -48,8 +47,8 @@ public class CopyCategoriesDialog extends Dialog {
         getFooter().add(copy, cancel);
     }
 
-    public Registration addAfterCopyListener(ComponentEventListener<AfterCopyEvent> listener) {
-        return addListener(AfterCopyEvent.class, listener);
+    public void addAfterCopyListener(ComponentEventListener<AfterCopyEvent> listener) {
+        addListener(AfterCopyEvent.class, listener);
     }
 
     public static class AfterCopyEvent extends ComponentEvent<CopyCategoriesDialog> {
