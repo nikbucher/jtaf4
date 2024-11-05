@@ -2,18 +2,18 @@ package ch.jtaf.domain;
 
 import ch.jtaf.db.tables.Club;
 import ch.jtaf.db.tables.records.ClubRecord;
-import ch.martinelli.oss.jooqspring.JooqRepository;
+import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.DSLContext;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static ch.jtaf.db.tables.Club.CLUB;
 
-@Repository
-public class ClubRepository extends JooqRepository<Club, ClubRecord, Long> {
+@Component
+public class ClubDAO extends JooqDAO<Club, ClubRecord, Long> {
 
-    public ClubRepository(DSLContext dslContext) {
+    public ClubDAO(DSLContext dslContext) {
         super(dslContext, CLUB);
     }
 

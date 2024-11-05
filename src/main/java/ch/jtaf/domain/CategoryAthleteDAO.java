@@ -3,20 +3,20 @@ package ch.jtaf.domain;
 import ch.jtaf.db.tables.CategoryAthlete;
 import ch.jtaf.db.tables.records.AthleteRecord;
 import ch.jtaf.db.tables.records.CategoryAthleteRecord;
-import ch.martinelli.oss.jooqspring.JooqRepository;
+import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import static ch.jtaf.db.tables.Category.CATEGORY;
 import static ch.jtaf.db.tables.CategoryAthlete.CATEGORY_ATHLETE;
 import static org.jooq.impl.DSL.select;
 
-@Repository
-public class CategoryAthleteRepository extends JooqRepository<CategoryAthlete, CategoryAthleteRecord, CategoryAthleteId> {
+@Component
+public class CategoryAthleteDAO extends JooqDAO<CategoryAthlete, CategoryAthleteRecord, CategoryAthleteId> {
 
-    public CategoryAthleteRepository(DSLContext dslContext) {
+    public CategoryAthleteDAO(DSLContext dslContext) {
         super(dslContext, CATEGORY_ATHLETE);
     }
 

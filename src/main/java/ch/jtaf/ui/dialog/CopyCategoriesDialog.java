@@ -1,7 +1,7 @@
 package ch.jtaf.ui.dialog;
 
 import ch.jtaf.db.tables.records.SeriesRecord;
-import ch.jtaf.domain.SeriesRepository;
+import ch.jtaf.domain.SeriesDAO;
 import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.button.Button;
@@ -13,7 +13,7 @@ import com.vaadin.flow.component.notification.Notification;
 
 public class CopyCategoriesDialog extends Dialog {
 
-    public CopyCategoriesDialog(long organizationId, long currentSeriesId, SeriesRepository seriesRepository) {
+    public CopyCategoriesDialog(long organizationId, long currentSeriesId, SeriesDAO seriesDAO) {
         setHeaderTitle(getTranslation("Copy.Categories"));
 
         var close = new Button(VaadinIcon.CLOSE_SMALL.create());
@@ -25,7 +25,7 @@ public class CopyCategoriesDialog extends Dialog {
         seriesSelection.setWidth("300px");
         seriesSelection.setItemLabelGenerator(SeriesRecord::getName);
         seriesSelection.setItems(query ->
-            seriesRepository.findByOrganizationIdAndSeriesId(organizationId, currentSeriesId,
+            seriesDAO.findByOrganizationIdAndSeriesId(organizationId, currentSeriesId,
             query.getOffset(), query.getLimit()).stream());
 
         add(seriesSelection);
@@ -34,7 +34,7 @@ public class CopyCategoriesDialog extends Dialog {
         copy.setId("copy-categories-copy");
         copy.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         copy.addClickListener(event -> {
-            seriesRepository.copyCategories(seriesSelection.getValue().getId(), currentSeriesId);
+            seriesDAO.copyCategories(seriesSelection.getValue().getId(), currentSeriesId);
             Notification.show(getTranslation("Categories.copied"), 6000, Notification.Position.TOP_END);
 
             fireEvent(new AfterCopyEvent(this));
