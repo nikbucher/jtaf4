@@ -5,7 +5,7 @@ import ch.jtaf.db.tables.records.OrganizationRecord;
 import ch.jtaf.db.tables.records.OrganizationUserRecord;
 import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.DSLContext;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -14,7 +14,7 @@ import static ch.jtaf.db.tables.Organization.ORGANIZATION;
 import static ch.jtaf.db.tables.OrganizationUser.ORGANIZATION_USER;
 import static ch.jtaf.db.tables.SecurityUser.SECURITY_USER;
 
-@Component
+@Repository
 public class OrganizationDAO extends JooqDAO<Organization, OrganizationRecord, Long> {
 
     public OrganizationDAO(DSLContext dslContext) {

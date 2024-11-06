@@ -6,14 +6,14 @@ import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 import static ch.jtaf.db.tables.CategoryEvent.CATEGORY_EVENT;
 import static ch.jtaf.db.tables.Event.EVENT;
 
-@Component
+@Repository
 public class EventDAO extends JooqDAO<Event, EventRecord, Long> {
 
     public EventDAO(DSLContext dslContext) {

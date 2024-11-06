@@ -4,13 +4,13 @@ import ch.jtaf.db.tables.Result;
 import ch.jtaf.db.tables.records.ResultRecord;
 import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.DSLContext;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
 import static ch.jtaf.db.tables.Result.RESULT;
 
-@Component
+@Repository
 public class ResultDAO extends JooqDAO<Result, ResultRecord, Long> {
 
     public ResultDAO(DSLContext dslContext) {

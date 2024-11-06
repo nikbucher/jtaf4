@@ -5,7 +5,7 @@ import ch.jtaf.db.tables.records.SeriesRecord;
 import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -17,7 +17,7 @@ import static ch.jtaf.db.tables.Series.SERIES;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.select;
 
-@Component
+@Repository
 public class SeriesDAO extends JooqDAO<Series, SeriesRecord, Long> {
 
     public SeriesDAO(DSLContext dslContext) {

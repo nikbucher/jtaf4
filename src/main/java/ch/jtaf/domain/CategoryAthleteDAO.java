@@ -6,14 +6,14 @@ import ch.jtaf.db.tables.records.CategoryAthleteRecord;
 import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import static ch.jtaf.db.tables.Category.CATEGORY;
 import static ch.jtaf.db.tables.CategoryAthlete.CATEGORY_ATHLETE;
 import static org.jooq.impl.DSL.select;
 
-@Component
+@Repository
 public class CategoryAthleteDAO extends JooqDAO<CategoryAthlete, CategoryAthleteRecord, CategoryAthleteId> {
 
     public CategoryAthleteDAO(DSLContext dslContext) {

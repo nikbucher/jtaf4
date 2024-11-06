@@ -7,7 +7,7 @@ import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record4;
 import org.jooq.Result;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -17,7 +17,7 @@ import static ch.jtaf.db.tables.CategoryAthlete.CATEGORY_ATHLETE;
 import static ch.jtaf.db.tables.Competition.COMPETITION;
 import static org.jooq.impl.DSL.select;
 
-@Component
+@Repository
 public class AthleteDAO extends JooqDAO<Athlete, AthleteRecord, Long> {
 
     public AthleteDAO(DSLContext dslContext) {

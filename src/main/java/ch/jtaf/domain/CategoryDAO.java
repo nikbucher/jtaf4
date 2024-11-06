@@ -4,13 +4,13 @@ import ch.jtaf.db.tables.Category;
 import ch.jtaf.db.tables.records.CategoryRecord;
 import ch.martinelli.oss.jooqspring.JooqDAO;
 import org.jooq.DSLContext;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 import static ch.jtaf.db.tables.Category.CATEGORY;
 
-@Component
+@Repository
 public class CategoryDAO extends JooqDAO<Category, CategoryRecord, Long> {
 
     public CategoryDAO(DSLContext dslContext) {
