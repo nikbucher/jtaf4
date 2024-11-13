@@ -32,7 +32,7 @@ Over the following years JTAF was reimplemeted as a web application and completl
 
 ## Start using it, now!
 
-JTAF is available as Software-as-a-Service (SaaS) in the cloud! https://www.jtaf.ch
+JTAF is available as Software-as-a-Service (SaaS) in the cloud! https://jtaf.ch
 
 ## License
 
